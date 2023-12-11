@@ -18,7 +18,7 @@ entity Client {
 
 entity Gitrep {
 	clientid String
-	accesstoken String
+	accesstoken String required
 }
 
 relationship OneToMany {
