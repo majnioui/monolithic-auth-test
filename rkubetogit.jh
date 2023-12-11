@@ -1,0 +1,26 @@
+
+application {
+  config {
+    baseName monolithicauthtest
+    applicationType monolith
+    packageName com.monolithicauthtest.app
+    authenticationType jwt
+    prodDatabaseType postgresql
+    clientFramework angular
+  }
+  entities *
+}
+
+entity Client {
+	orgname String
+    clientname String
+}
+
+entity Gitrep {
+	clientid String
+	accesstoken String
+}
+
+relationship OneToMany {
+  A to B
+}
