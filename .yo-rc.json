@@ -1,5 +1,6 @@
 {
   "generator-jhipster": {
+    "applicationIndex": 0,
     "applicationType": "monolith",
     "authenticationType": "jwt",
     "baseName": "monolithicauthtest",
@@ -15,12 +16,13 @@
     "enableHibernateCache": true,
     "enableSwaggerCodegen": "true",
     "enableTranslation": true,
-    "entities": [],
+    "entities": ["Client", "Gitrep"],
     "gitCompany": "",
     "jhiPrefix": "jhi",
     "jhipsterVersion": "8.0.0",
     "jwtSecretKey": "OWUyOTU2MDBmODQwNTBlNGJhNzIyZmUyYTNjMWY0NGZiODIwNzUzNmZjMzJlMzQ1NmRlMjM1ZDU3MTQ1MmQ0OTQ5OGJkOTQ4NzlhYmZhMjUyZjE0M2ZhZTRiOTNlZWJmMGFiNmYxOGJmODhmY2MwNTFhMDVmOGVlYmM2MzJiMzc=",
     "languages": ["en", "fr"],
+    "lastLiquibaseTimestamp": 1702293284000,
     "messageBroker": false,
     "nativeLanguage": "en",
     "packageFolder": "com/monolithicauthtest/app",
@@ -34,7 +36,44 @@
     "websocket": false,
     "withAdminUi": true
   },
-  "git-company": "majnioui",
-  "git-provider": "GitHub",
-  "repository-name": "monolithic-auth-test"
+  "git-company": {
+    "0": "m",
+    "1": "a",
+    "2": "j",
+    "3": "n",
+    "4": "i",
+    "5": "o",
+    "6": "u",
+    "7": "i"
+  },
+  "git-provider": {
+    "0": "G",
+    "1": "i",
+    "2": "t",
+    "3": "H",
+    "4": "u",
+    "5": "b"
+  },
+  "repository-name": {
+    "0": "m",
+    "1": "o",
+    "2": "n",
+    "3": "o",
+    "4": "l",
+    "5": "i",
+    "6": "t",
+    "7": "h",
+    "8": "i",
+    "9": "c",
+    "10": "-",
+    "11": "a",
+    "12": "u",
+    "13": "t",
+    "14": "h",
+    "15": "-",
+    "16": "t",
+    "17": "e",
+    "18": "s",
+    "19": "t"
+  }
 }

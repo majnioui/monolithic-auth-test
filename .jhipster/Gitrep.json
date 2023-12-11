@@ -1,0 +1,27 @@
+{
+  "applications": ["monolithicauthtest"],
+  "changelogDate": "20231211111444",
+  "entityTableName": "gitrep",
+  "fields": [
+    {
+      "fieldName": "clientid",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "accesstoken",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    }
+  ],
+  "name": "Gitrep",
+  "relationships": [
+    {
+      "otherEntityName": "client",
+      "otherEntityRelationshipName": "gitrep",
+      "relationshipName": "client",
+      "relationshipSide": "right",
+      "relationshipType": "many-to-one"
+    }
+  ],
+  "searchEngine": "no"
+}

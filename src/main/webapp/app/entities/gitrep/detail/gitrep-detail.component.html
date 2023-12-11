@@ -1,0 +1,42 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <div *ngIf="gitrep">
+      <h2 data-cy="gitrepDetailsHeading"><span jhiTranslate="monolithicauthtestApp.gitrep.detail.title">Gitrep</span></h2>
+
+      <hr />
+
+      <jhi-alert-error></jhi-alert-error>
+
+      <jhi-alert></jhi-alert>
+
+      <dl class="row-md jh-entity-details">
+        <dt><span jhiTranslate="global.field.id">ID</span></dt>
+        <dd>
+          <span>{{ gitrep.id }}</span>
+        </dd>
+        <dt><span jhiTranslate="monolithicauthtestApp.gitrep.clientid">Clientid</span></dt>
+        <dd>
+          <span>{{ gitrep.clientid }}</span>
+        </dd>
+        <dt><span jhiTranslate="monolithicauthtestApp.gitrep.accesstoken">Accesstoken</span></dt>
+        <dd>
+          <span>{{ gitrep.accesstoken }}</span>
+        </dd>
+        <dt><span jhiTranslate="monolithicauthtestApp.gitrep.client">Client</span></dt>
+        <dd>
+          <div *ngIf="gitrep.client">
+            <a [routerLink]="['/client', gitrep.client.id, 'view']">{{ gitrep.client.id }}</a>
+          </div>
+        </dd>
+      </dl>
+
+      <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+        <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+      </button>
+
+      <button type="button" [routerLink]="['/gitrep', gitrep.id, 'edit']" class="btn btn-primary">
+        <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
+      </button>
+    </div>
+  </div>
+</div>
