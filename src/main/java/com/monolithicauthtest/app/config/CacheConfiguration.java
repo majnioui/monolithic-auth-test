@@ -48,6 +48,9 @@ public class CacheConfiguration {
             createCache(cm, com.monolithicauthtest.app.domain.User.class.getName());
             createCache(cm, com.monolithicauthtest.app.domain.Authority.class.getName());
             createCache(cm, com.monolithicauthtest.app.domain.User.class.getName() + ".authorities");
+            createCache(cm, com.monolithicauthtest.app.domain.Client.class.getName());
+            createCache(cm, com.monolithicauthtest.app.domain.Client.class.getName() + ".gitreps");
+            createCache(cm, com.monolithicauthtest.app.domain.Gitrep.class.getName());
             // jhipster-needle-ehcache-add-entry
         };
     }

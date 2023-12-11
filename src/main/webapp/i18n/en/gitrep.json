@@ -1,0 +1,26 @@
+{
+  "monolithicauthtestApp": {
+    "gitrep": {
+      "home": {
+        "title": "Gitreps",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Gitrep",
+        "createOrEditLabel": "Create or edit a Gitrep",
+        "notFound": "No Gitreps found"
+      },
+      "created": "A new Gitrep is created with identifier {{ param }}",
+      "updated": "A Gitrep is updated with identifier {{ param }}",
+      "deleted": "A Gitrep is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Gitrep {{ id }}?"
+      },
+      "detail": {
+        "title": "Gitrep"
+      },
+      "id": "ID",
+      "clientid": "Clientid",
+      "accesstoken": "Accesstoken",
+      "client": "Client"
+    }
+  }
+}
