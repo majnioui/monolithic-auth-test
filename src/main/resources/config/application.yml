@@ -90,6 +90,18 @@ management:
 spring:
   application:
     name: monolithicauthtest
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            clientId: 90d2a03112b4eb6b5ed8
+            clientSecret: a82d5dcf524b5e645910493c87eba8b76486ec24
+logging:
+  level:
+    root: INFO
+    com.monolithicauthtest.app: DEBUG
+
   profiles:
     # The commented value for `active` can be replaced with valid Spring profiles to load.
     # Otherwise, it will be filled in by maven when building the JAR file
