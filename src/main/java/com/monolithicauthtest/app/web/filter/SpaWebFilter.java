@@ -23,6 +23,8 @@ public class SpaWebFilter extends OncePerRequestFilter {
             !path.startsWith("/v3/api-docs") &&
             !path.startsWith("/h2-console") &&
             !path.startsWith("/testgit") &&
+            !path.startsWith("/authorize-github") &&
+            !path.startsWith("/login/oauth2/code/github") &&
             !path.contains(".") &&
             path.matches("/(.*)")
         ) {

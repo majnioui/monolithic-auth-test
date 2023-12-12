@@ -87,6 +87,10 @@ management:
           autotime:
             enabled: true
 
+github:
+  client-id: 90d2a03112b4eb6b5ed8
+  client-secret: a82d5dcf524b5e645910493c87eba8b76486ec24
+
 spring:
   application:
     name: monolithicauthtest

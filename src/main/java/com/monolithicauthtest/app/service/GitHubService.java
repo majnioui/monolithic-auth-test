@@ -1,0 +1,69 @@
+package com.monolithicauthtest.app.service;
+
+import java.util.HashMap;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.*;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+@Service
+public class GitHubService {
+
+    private final Logger log = LoggerFactory.getLogger(GitHubService.class);
+    private final RestTemplate restTemplate;
+
+    @Value("${github.client-id}")
+    private String clientId;
+
+    @Value("${github.client-secret}")
+    private String clientSecret;
+
+    public GitHubService(@Value("${github.client-id}") String clientId, @Value("${github.client-secret}") String clientSecret) {
+        this.restTemplate = new RestTemplate();
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
+
+        // Log to confirm values are loaded
+        log.info("GitHub Client ID: {}", clientId);
+        log.info("GitHub Client Secret: {}", clientSecret);
+    }
+
+    public String exchangeCodeForAccessToken(String code) {
+        String uri = "https://github.com/login/oauth/access_token";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("client_id", clientId);
+        params.put("client_secret", clientSecret);
+        params.put("code", code);
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(params, headers);
+
+        try {
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                uri,
+                HttpMethod.POST,
+                request,
+                new ParameterizedTypeReference<Map<String, Object>>() {}
+            );
+
+            Map<String, Object> responseBody = response.getBody();
+
+            if (responseBody != null && responseBody.containsKey("access_token")) {
+                return (String) responseBody.get("access_token");
+            } else {
+                log.error("Access token not found in the response");
+                return null;
+            }
+        } catch (Exception e) {
+            log.error("Error while exchanging code for access token", e);
+            return null;
+        }
+    }
+}
