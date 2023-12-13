@@ -12,4 +12,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface GitrepRepository extends JpaRepository<Gitrep, Long> {
     Optional<Gitrep> findFirstByOrderByCreatedAtDesc();
+    void deleteByClientid(String clientid);
 }

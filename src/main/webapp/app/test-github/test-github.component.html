@@ -1,5 +1,9 @@
 <div>
-  <a href="/authorize-github" class="btn btn-primary">Authorize GitHub</a>
+  <!-- Show "Refresh" if repositories are available -->
+  <a *ngIf="repositories.length > 0" href="/authorize-github" class="btn btn-primary">♻️ Refresh</a>
+
+  <!-- Show "Authorize GitHub" if no repositories are available -->
+  <a *ngIf="repositories.length === 0" href="/authorize-github" class="btn btn-primary">Authorize</a>
 
   <select *ngIf="repositories.length > 0" class="form-select mt-3">
     <option *ngFor="let repo of repositories" [value]="repo.name">{{ repo.name }}</option>
