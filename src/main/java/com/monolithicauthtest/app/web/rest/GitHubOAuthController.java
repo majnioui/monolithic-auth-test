@@ -40,28 +40,31 @@ public class GitHubOAuthController {
     }
 
     @GetMapping("/login/oauth2/code/github")
-    public ResponseEntity<String> handleGitHubRedirect(@RequestParam("code") String code) {
+    public void handleGitHubRedirect(@RequestParam("code") String code, HttpServletResponse response) {
         log.info("GitHub callback triggered with code: {}", code);
         try {
-            log.debug("GitHub authorization code received: {}", code);
             String accessToken = gitHubService.exchangeCodeForAccessToken(code);
             log.debug("Received access token: {}", accessToken);
-            if (accessToken != null) {
-                Gitrep gitrep = new Gitrep();
-                // todo latter: set the client ID based on the current user/session
-                gitrep.setClientid("1001"); // Hardcoded client ID for testing only
-                gitrep.setAccesstoken(accessToken);
 
-                gitrepRepository.save(gitrep);
-                log.info("Access token saved successfully in Gitrep entity");
-                return ResponseEntity.ok("GitHub authorization successful.");
+            if (accessToken != null) {
+                // Update Gitrep with the new access token
+                String clientId = "1001"; // Hardcoded client ID for testing only
+                gitHubService.updateAccessToken(clientId, accessToken);
+                log.info("Access token updated successfully in Gitrep entity");
+
+                // Redirect to the test-github page aka back to the autorize/refresh page
+                response.sendRedirect("/test-github");
             } else {
                 log.error("Access token was null. Not saved in Gitrep entity.");
-                return ResponseEntity.badRequest().body("Failed to obtain access token.");
+                response.sendRedirect("/error?message=Failed to obtain access token");
             }
         } catch (Exception e) {
             log.error("Error during GitHub OAuth process", e);
-            return ResponseEntity.internalServerError().body("Error during GitHub OAuth process.");
+            try {
+                response.sendRedirect("/error?message=Error during GitHub OAuth process");
+            } catch (IOException ex) {
+                log.error("Error during redirection to the error page", ex);
+            }
         }
     }
 

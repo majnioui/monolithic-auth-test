@@ -1,5 +1,7 @@
 package com.monolithicauthtest.app.service;
 
+import com.monolithicauthtest.app.domain.Gitrep;
+import com.monolithicauthtest.app.repository.GitrepRepository;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 @Service
@@ -17,6 +20,7 @@ public class GitHubService {
 
     private final Logger log = LoggerFactory.getLogger(GitHubService.class);
     private final RestTemplate restTemplate;
+    private final GitrepRepository gitrepRepository;
 
     @Value("${github.client-id}")
     private String clientId;
@@ -24,14 +28,31 @@ public class GitHubService {
     @Value("${github.client-secret}")
     private String clientSecret;
 
-    public GitHubService(@Value("${github.client-id}") String clientId, @Value("${github.client-secret}") String clientSecret) {
+    public GitHubService(
+        GitrepRepository gitrepRepository,
+        @Value("${github.client-id}") String clientId,
+        @Value("${github.client-secret}") String clientSecret
+    ) {
         this.restTemplate = new RestTemplate();
         this.clientId = clientId;
         this.clientSecret = clientSecret;
+        this.gitrepRepository = gitrepRepository;
 
         // Log to confirm values are loaded
         log.info("GitHub Client ID: {}", clientId);
         log.info("GitHub Client Secret: {}", clientSecret);
+    }
+
+    @Transactional
+    public void updateAccessToken(String clientId, String accessToken) {
+        // Delete existing tokens for the client
+        gitrepRepository.deleteByClientid(clientId);
+
+        // Save the new token
+        Gitrep gitrep = new Gitrep();
+        gitrep.setClientid(clientId);
+        gitrep.setAccesstoken(accessToken);
+        gitrepRepository.save(gitrep);
     }
 
     public String exchangeCodeForAccessToken(String code) {
