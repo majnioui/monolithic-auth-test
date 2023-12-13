@@ -1,6 +1,8 @@
 package com.monolithicauthtest.app.service;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +66,26 @@ public class GitHubService {
         } catch (Exception e) {
             log.error("Error while exchanging code for access token", e);
             return null;
+        }
+    }
+
+    public List<Map<String, Object>> getRepositories(String accessToken) {
+        String uri = "https://api.github.com/user/repos";
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
+                uri,
+                HttpMethod.GET,
+                request,
+                new ParameterizedTypeReference<List<Map<String, Object>>>() {}
+            );
+            return response.getBody();
+        } catch (Exception e) {
+            log.error("Service: Error fetching repositories ", e);
+            return Collections.emptyList();
         }
     }
 }

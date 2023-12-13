@@ -1,1 +1,7 @@
-<a href="/authorize-github" class="btn btn-primary">Authorize GitHub</a>
+<div>
+  <a href="/authorize-github" class="btn btn-primary">Authorize GitHub</a>
+
+  <select *ngIf="repositories.length > 0" class="form-select mt-3">
+    <option *ngFor="let repo of repositories" [value]="repo.name">{{ repo.name }}</option>
+  </select>
+</div>

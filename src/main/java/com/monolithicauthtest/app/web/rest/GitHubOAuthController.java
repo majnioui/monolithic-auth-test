@@ -5,6 +5,9 @@ import com.monolithicauthtest.app.repository.GitrepRepository;
 import com.monolithicauthtest.app.service.GitHubService;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,5 +63,16 @@ public class GitHubOAuthController {
             log.error("Error during GitHub OAuth process", e);
             return ResponseEntity.internalServerError().body("Error during GitHub OAuth process.");
         }
+    }
+
+    @GetMapping("/user/repositories")
+    public ResponseEntity<List<Map<String, Object>>> getUserRepositories() {
+        Optional<Gitrep> latestGitrep = gitrepRepository.findFirstByOrderByCreatedAtDesc();
+        if (!latestGitrep.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        List<Map<String, Object>> repositories = gitHubService.getRepositories(latestGitrep.get().getAccesstoken());
+        return ResponseEntity.ok(repositories);
     }
 }
