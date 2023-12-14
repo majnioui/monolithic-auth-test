@@ -91,6 +91,10 @@ github:
   client-id: 90d2a03112b4eb6b5ed8
   client-secret: a82d5dcf524b5e645910493c87eba8b76486ec24
 
+gitlab:
+  client-id: 66b0605df330a0f0b7f7e959968cbe4565e07a29f7f0186b93cc3330a7168e9f
+  client-secret: gloas-594d178539b1457f274781f653f2e5156efc86725dec40aa1c0eabb2208f9299
+
 spring:
   application:
     name: monolithicauthtest

@@ -9,11 +9,12 @@ import { GithubService } from '../services/github.service';
 })
 export class TestGithubComponent implements OnInit {
   responseMessage: string = '';
-  repositories: any[] = []; // Array to store GitHub repositories
+  repositories: any[] = [];
+  platform: 'github' | 'gitlab' = 'github'; // Tracks which platform is being used
 
   constructor(
     private http: HttpClient,
-    private githubService: GithubService, // Inject the GithubService
+    private githubService: GithubService,
   ) {}
 
   ngOnInit() {
@@ -22,8 +23,9 @@ export class TestGithubComponent implements OnInit {
   }
 
   getTestGithubResponse() {
-    console.log('Making request to /testgit');
-    this.http.get('/testgit', { responseType: 'text' }).subscribe({
+    const endpoint = this.platform === 'github' ? '/testgit' : '/testgit';
+    console.log(`Making request to ${endpoint}`);
+    this.http.get(endpoint, { responseType: 'text' }).subscribe({
       next: response => {
         this.responseMessage = response;
       },
@@ -34,13 +36,30 @@ export class TestGithubComponent implements OnInit {
   }
 
   getUserRepositories() {
-    this.githubService.getUserRepositories().subscribe({
-      next: repos => {
-        this.repositories = repos;
-      },
-      error: error => {
-        console.error('Compenant error fetching repositories:', error);
-      },
-    });
+    if (this.platform === 'github') {
+      this.githubService.getUserRepositories().subscribe({
+        next: repos => {
+          this.repositories = repos;
+        },
+        error: error => {
+          console.error('Component error fetching GitHub repositories:', error);
+        },
+      });
+    } else if (this.platform === 'gitlab') {
+      this.githubService.getGitLabRepositories().subscribe({
+        next: repos => {
+          this.repositories = repos;
+        },
+        error: error => {
+          console.error('Component error fetching GitLab repositories:', error);
+        },
+      });
+    }
+  }
+
+  switchPlatform(newPlatform: 'github' | 'gitlab') {
+    this.platform = newPlatform;
+    this.getTestGithubResponse();
+    this.getUserRepositories();
   }
 }
