@@ -45,12 +45,11 @@ public class GitHubOAuthController {
     // GitLab Authorization
     @GetMapping("/authorize-gitlab")
     public void initiateGitLabAuthorization(HttpServletResponse response) throws IOException {
-        String scopes = "read_user,api";
+        String scopes = "read_repository";
         String redirectUrl =
             "http://192.168.100.130/oauth/authorize?client_id=" +
             gitlabClientId +
-            "&response_type=code&redirect_uri={YOUR_REDIRECT_URI}&scope=" +
-            scopes;
+            "&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/gitlab";
         response.sendRedirect(redirectUrl);
     }
 
@@ -98,7 +97,7 @@ public class GitHubOAuthController {
                 log.info("GitLab access token updated successfully in Gitrep entity");
 
                 // Redirect to an appropriate page for GitLab
-                response.sendRedirect("/test-gitlab");
+                response.sendRedirect("/test-github");
             } else {
                 log.error("GitLab access token was null. Not saved in Gitrep entity.");
                 response.sendRedirect("/error?message=Failed to obtain GitLab access token");
@@ -121,6 +120,12 @@ public class GitHubOAuthController {
         }
 
         List<Map<String, Object>> repositories = gitHubService.getRepositories(latestGitrep.get().getAccesstoken());
+        return ResponseEntity.ok(repositories);
+    }
+
+    @GetMapping("/gitlab/repositories")
+    public ResponseEntity<List<Map<String, Object>>> getGitLabRepositories() {
+        List<Map<String, Object>> repositories = gitHubService.getGitLabRepositories();
         return ResponseEntity.ok(repositories);
     }
 }

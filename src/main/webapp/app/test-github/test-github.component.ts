@@ -1,3 +1,5 @@
+// src/app/test-github/test-github.component.ts
+
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { GithubService } from '../services/github.service';
@@ -10,7 +12,7 @@ import { GithubService } from '../services/github.service';
 export class TestGithubComponent implements OnInit {
   responseMessage: string = '';
   repositories: any[] = [];
-  platform: 'github' | 'gitlab' = 'github'; // Tracks which platform is being used
+  platform: 'github' | 'gitlab' = 'github';
 
   constructor(
     private http: HttpClient,
@@ -23,7 +25,7 @@ export class TestGithubComponent implements OnInit {
   }
 
   getTestGithubResponse() {
-    const endpoint = this.platform === 'github' ? '/testgit' : '/testgit';
+    const endpoint = this.platform === 'github' ? '/testgit' : '/testgitlab';
     console.log(`Making request to ${endpoint}`);
     this.http.get(endpoint, { responseType: 'text' }).subscribe({
       next: response => {

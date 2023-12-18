@@ -14,6 +14,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
@@ -110,7 +111,7 @@ public class GitHubService {
         params.put("client_secret", gitlabClientSecret);
         params.put("code", code);
         params.put("grant_type", "authorization_code");
-        params.put("redirect_uri", "http://localhost:8080/login/oauth2/code/github");
+        params.put("redirect_uri", "http://localhost:8080/login/oauth2/code/gitlab");
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(params, headers);
 
@@ -130,6 +131,10 @@ public class GitHubService {
                 log.error("GitLab access token not found in the response");
                 return null;
             }
+        } catch (HttpClientErrorException e) {
+            log.error("HTTP error during GitLab token exchange: {}", e.getStatusCode());
+            log.error("Response body: {}", e.getResponseBodyAsString());
+            return null;
         } catch (Exception e) {
             log.error("Error while exchanging code for GitLab access token", e);
             return null;
@@ -183,9 +188,8 @@ public class GitHubService {
     }
 
     public String retrieveAccessToken() {
-        // Example implementation - adjust based on your application's logic
         Optional<Gitrep> latestGitrep = gitrepRepository.findFirstByOrderByCreatedAtDesc();
-        if (latestGitrep.isPresent() && latestGitrep.get().isGitLabToken()) { // Assuming there's a way to distinguish GitLab tokens
+        if (latestGitrep.isPresent()) {
             return latestGitrep.get().getAccesstoken();
         }
         return null;
