@@ -1,15 +1,33 @@
-<div>
-  <!-- Buttons to switch between GitHub and GitLab -->
-  <button (click)="switchPlatform('github')" class="btn btn-secondary">GitHub</button>
-  <button (click)="switchPlatform('gitlab')" class="btn btn-secondary">GitLab</button>
+<div class="authorization-container">
+  <h2 class="text-center">Choose your authorization method</h2>
 
-  <!-- Show "Refresh" if repositories are available -->
-  <a *ngIf="repositories.length > 0" [href]="'/authorize-' + platform" class="btn btn-primary">♻️ Refresh</a>
+  <div class="button-group text-center">
+    <button (click)="switchPlatform('github')" class="btn btn-primary btn-lg">GitHub</button>
+    <button (click)="switchPlatform('gitlab')" class="btn btn-success btn-lg">GitLab</button>
+  </div>
 
-  <!-- Show "Authorize" if no repositories are available -->
-  <a *ngIf="repositories.length === 0" [href]="'/authorize-' + platform" class="btn btn-primary">Authorize</a>
+  <!-- Show "Authorize" if no repositories are available for the current platform -->
+  <a
+    *ngIf="(platform === 'github' && githubRepositories.length === 0) || (platform === 'gitlab' && gitlabRepositories.length === 0)"
+    [href]="'/authorize-' + platform"
+    class="btn btn-primary mt-3"
+    >Authorize</a
+  >
 
-  <select *ngIf="repositories.length > 0" class="form-select mt-3">
-    <option *ngFor="let repo of repositories" [value]="repo.name">{{ repo.name }}</option>
+  <!-- GitHub Repository List -->
+  <select *ngIf="githubRepositories.length > 0 && platform === 'github'" class="form-select mt-3">
+    <option *ngFor="let repo of githubRepositories" [value]="repo.name">{{ repo.name }}</option>
   </select>
+
+  <!-- GitLab Repository List -->
+  <select *ngIf="gitlabRepositories.length > 0 && platform === 'gitlab'" class="form-select mt-3">
+    <option *ngFor="let repo of gitlabRepositories" [value]="repo.name">{{ repo.name }}</option>
+  </select>
+
+  <!-- Information text -->
+  <p class="info-text mt-3 text-center">
+    <small *ngIf="(platform === 'github' && githubRepositories.length > 0) || (platform === 'gitlab' && gitlabRepositories.length > 0)">
+      Click on <a [href]="'/authorize-' + platform" class="btn btn-link">Refresh</a> if the repo is recently added.
+    </small>
+  </p>
 </div>

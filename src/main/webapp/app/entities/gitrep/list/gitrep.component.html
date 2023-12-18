@@ -32,30 +32,11 @@
     <table class="table table-striped" aria-describedby="page-heading">
       <thead>
         <tr jhiSort [(predicate)]="predicate" [(ascending)]="ascending" (sortChange)="navigateToWithComponentValues()">
-          <th scope="col" jhiSortBy="id">
-            <div class="d-flex">
-              <span jhiTranslate="global.field.id">ID</span>
-              <fa-icon class="p-1" icon="sort"></fa-icon>
-            </div>
-          </th>
-          <th scope="col" jhiSortBy="clientid">
-            <div class="d-flex">
-              <span jhiTranslate="monolithicauthtestApp.gitrep.clientid">Clientid</span>
-              <fa-icon class="p-1" icon="sort"></fa-icon>
-            </div>
-          </th>
-          <th scope="col" jhiSortBy="accesstoken">
-            <div class="d-flex">
-              <span jhiTranslate="monolithicauthtestApp.gitrep.accesstoken">Accesstoken</span>
-              <fa-icon class="p-1" icon="sort"></fa-icon>
-            </div>
-          </th>
-          <th scope="col" jhiSortBy="client.id">
-            <div class="d-flex">
-              <span jhiTranslate="monolithicauthtestApp.gitrep.client">Client</span>
-              <fa-icon class="p-1" icon="sort"></fa-icon>
-            </div>
-          </th>
+          <th scope="col" jhiSortBy="id"><span jhiTranslate="global.field.id">ID</span></th>
+          <th scope="col" jhiSortBy="clientid"><span jhiTranslate="monolithicauthtestApp.gitrep.clientid">Clientid</span></th>
+          <th scope="col" jhiSortBy="accesstoken"><span jhiTranslate="monolithicauthtestApp.gitrep.accesstoken">Accesstoken</span></th>
+          <th scope="col" jhiSortBy="platformType"><span jhiTranslate="monolithicauthtestApp.gitrep.platformType">Platform Type</span></th>
+          <th scope="col" jhiSortBy="client.id"><span jhiTranslate="monolithicauthtestApp.gitrep.client">Client</span></th>
           <th scope="col"></th>
         </tr>
       </thead>
@@ -66,10 +47,9 @@
           </td>
           <td>{{ gitrep.clientid }}</td>
           <td>{{ gitrep.accesstoken }}</td>
-          <td>
-            <div *ngIf="gitrep.client">
-              <a [routerLink]="['/client', gitrep.client.id, 'view']">{{ gitrep.client.id }}</a>
-            </div>
+          <td>{{ gitrep.platformType }}</td>
+          <td *ngIf="gitrep.client">
+            <a [routerLink]="['/client', gitrep.client.id, 'view']">{{ gitrep.client?.id }}</a>
           </td>
           <td class="text-end">
             <div class="btn-group">

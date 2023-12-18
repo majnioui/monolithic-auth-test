@@ -45,7 +45,7 @@ public class GitHubOAuthController {
     // GitLab Authorization
     @GetMapping("/authorize-gitlab")
     public void initiateGitLabAuthorization(HttpServletResponse response) throws IOException {
-        String scopes = "read_repository";
+        //String scopes = "read_repository";
         String redirectUrl =
             "http://192.168.100.130/oauth/authorize?client_id=" +
             gitlabClientId +
@@ -61,12 +61,12 @@ public class GitHubOAuthController {
             log.debug("Received access token: {}", accessToken);
 
             if (accessToken != null) {
-                // Update Gitrep with the new access token
+                // Update Gitrep with the new access token and platform type
                 String clientId = "1001"; // Hardcoded client ID for testing only
-                gitHubService.updateAccessToken(clientId, accessToken);
-                log.info("Access token updated successfully in Gitrep entity");
+                gitHubService.updateAccessToken(clientId, accessToken, Gitrep.PlatformType.GITHUB);
+                log.info("Access token updated successfully in Gitrep entity for GitHub");
 
-                // Redirect to the test-github page aka back to the autorize/refresh page
+                // Redirect to the test-github page aka back to the authorize/refresh page
                 response.sendRedirect("/test-github");
             } else {
                 log.error("Access token was null. Not saved in Gitrep entity.");
@@ -91,10 +91,10 @@ public class GitHubOAuthController {
             log.debug("Received GitLab access token: {}", accessToken);
 
             if (accessToken != null) {
-                // Update Gitrep with the new access token
-                String clientId = "1001";
-                gitHubService.updateAccessToken(clientId, accessToken);
-                log.info("GitLab access token updated successfully in Gitrep entity");
+                // Update Gitrep with the new access token and platform type
+                String clientId = "1001"; // Example client ID
+                gitHubService.updateAccessToken(clientId, accessToken, Gitrep.PlatformType.GITLAB);
+                log.info("GitLab access token updated successfully in Gitrep entity for GitLab");
 
                 // Redirect to an appropriate page for GitLab
                 response.sendRedirect("/test-github");
@@ -114,12 +114,10 @@ public class GitHubOAuthController {
 
     @GetMapping("/user/repositories")
     public ResponseEntity<List<Map<String, Object>>> getUserRepositories() {
-        Optional<Gitrep> latestGitrep = gitrepRepository.findFirstByOrderByCreatedAtDesc();
-        if (!latestGitrep.isPresent()) {
+        List<Map<String, Object>> repositories = gitHubService.getRepositories();
+        if (repositories.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-
-        List<Map<String, Object>> repositories = gitHubService.getRepositories(latestGitrep.get().getAccesstoken());
         return ResponseEntity.ok(repositories);
     }
 

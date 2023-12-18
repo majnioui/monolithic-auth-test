@@ -1,5 +1,3 @@
-// src/app/test-github/test-github.component.ts
-
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { GithubService } from '../services/github.service';
@@ -11,7 +9,8 @@ import { GithubService } from '../services/github.service';
 })
 export class TestGithubComponent implements OnInit {
   responseMessage: string = '';
-  repositories: any[] = [];
+  githubRepositories: any[] = [];
+  gitlabRepositories: any[] = [];
   platform: 'github' | 'gitlab' = 'github';
 
   constructor(
@@ -38,25 +37,23 @@ export class TestGithubComponent implements OnInit {
   }
 
   getUserRepositories() {
-    if (this.platform === 'github') {
-      this.githubService.getUserRepositories().subscribe({
-        next: repos => {
-          this.repositories = repos;
-        },
-        error: error => {
-          console.error('Component error fetching GitHub repositories:', error);
-        },
-      });
-    } else if (this.platform === 'gitlab') {
-      this.githubService.getGitLabRepositories().subscribe({
-        next: repos => {
-          this.repositories = repos;
-        },
-        error: error => {
-          console.error('Component error fetching GitLab repositories:', error);
-        },
-      });
-    }
+    this.githubService.getUserRepositories().subscribe({
+      next: repos => {
+        this.githubRepositories = repos;
+      },
+      error: error => {
+        console.error('Component error fetching GitHub repositories:', error);
+      },
+    });
+
+    this.githubService.getGitLabRepositories().subscribe({
+      next: repos => {
+        this.gitlabRepositories = repos;
+      },
+      error: error => {
+        console.error('Component error fetching GitLab repositories:', error);
+      },
+    });
   }
 
   switchPlatform(newPlatform: 'github' | 'gitlab') {

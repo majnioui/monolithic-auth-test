@@ -1,6 +1,7 @@
 package com.monolithicauthtest.app.service;
 
 import com.monolithicauthtest.app.domain.Gitrep;
+import com.monolithicauthtest.app.domain.Gitrep.PlatformType;
 import com.monolithicauthtest.app.repository.GitrepRepository;
 import java.util.Collections;
 import java.util.HashMap;
@@ -54,14 +55,14 @@ public class GitHubService {
     }
 
     @Transactional
-    public void updateAccessToken(String clientId, String accessToken) {
-        // Delete existing tokens for the client
-        gitrepRepository.deleteByClientid(clientId);
+    public void updateAccessToken(String clientId, String accessToken, PlatformType platformType) {
+        // Delete existing tokens for the client and platform
+        gitrepRepository.deleteByClientidAndPlatformType(clientId, platformType);
 
-        // Save the new token
         Gitrep gitrep = new Gitrep();
         gitrep.setClientid(clientId);
         gitrep.setAccesstoken(accessToken);
+        gitrep.setPlatformType(platformType);
         gitrepRepository.save(gitrep);
     }
 
@@ -141,7 +142,14 @@ public class GitHubService {
         }
     }
 
-    public List<Map<String, Object>> getRepositories(String accessToken) {
+    public List<Map<String, Object>> getRepositories() {
+        // Retrieve the latest GitHub access token
+        String accessToken = retrieveAccessToken(Gitrep.PlatformType.GITHUB);
+        if (accessToken == null) {
+            return Collections.emptyList();
+        }
+
+        // Existing logic to fetch GitHub repositories
         String uri = "https://api.github.com/user/repos";
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
@@ -163,7 +171,7 @@ public class GitHubService {
 
     // Method to fetch repositories from GitLab
     public List<Map<String, Object>> getGitLabRepositories() {
-        String accessToken = retrieveAccessToken();
+        String accessToken = retrieveAccessToken(Gitrep.PlatformType.GITLAB);
         if (accessToken == null) {
             return Collections.emptyList();
         }
@@ -187,11 +195,8 @@ public class GitHubService {
         }
     }
 
-    public String retrieveAccessToken() {
-        Optional<Gitrep> latestGitrep = gitrepRepository.findFirstByOrderByCreatedAtDesc();
-        if (latestGitrep.isPresent()) {
-            return latestGitrep.get().getAccesstoken();
-        }
-        return null;
+    public String retrieveAccessToken(PlatformType platformType) {
+        Optional<Gitrep> latestGitrep = gitrepRepository.findFirstByPlatformTypeOrderByCreatedAtDesc(platformType);
+        return latestGitrep.map(Gitrep::getAccesstoken).orElse(null);
     }
 }

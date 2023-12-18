@@ -20,7 +20,8 @@
       "id": "ID",
       "clientid": "Clientid",
       "accesstoken": "Accesstoken",
-      "client": "Client"
+      "client": "Client",
+      "platformType": "Platform"
     }
   }
 }

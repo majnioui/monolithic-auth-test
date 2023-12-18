@@ -35,6 +35,15 @@ public class Gitrep implements Serializable {
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
 
+    public enum PlatformType {
+        GITHUB,
+        GITLAB,
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "platform_type")
+    private PlatformType platformType;
+
     @PrePersist
     public void prePersist() {
         this.createdAt = Instant.now();
@@ -57,6 +66,14 @@ public class Gitrep implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public PlatformType getPlatformType() {
+        return platformType;
+    }
+
+    public void setPlatformType(PlatformType platformType) {
+        this.platformType = platformType;
     }
 
     public String getClientid() {
