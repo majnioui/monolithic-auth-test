@@ -11,4 +11,8 @@ export class GithubService {
   getUserRepositories(): Observable<any[]> {
     return this.http.get<any[]>('/user/repositories');
   }
+
+  getGitLabRepositories(): Observable<any[]> {
+    return this.http.get<any[]>('/gitlab/repositories');
+  }
 }

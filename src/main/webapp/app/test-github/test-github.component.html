@@ -1,9 +1,13 @@
 <div>
-  <!-- Show "Refresh" if repositories are available -->
-  <a *ngIf="repositories.length > 0" href="/authorize-github" class="btn btn-primary">♻️ Refresh</a>
+  <!-- Buttons to switch between GitHub and GitLab -->
+  <button (click)="switchPlatform('github')" class="btn btn-secondary">GitHub</button>
+  <button (click)="switchPlatform('gitlab')" class="btn btn-secondary">GitLab</button>
 
-  <!-- Show "Authorize GitHub" if no repositories are available -->
-  <a *ngIf="repositories.length === 0" href="/authorize-github" class="btn btn-primary">Authorize</a>
+  <!-- Show "Refresh" if repositories are available -->
+  <a *ngIf="repositories.length > 0" [href]="'/authorize-' + platform" class="btn btn-primary">♻️ Refresh</a>
+
+  <!-- Show "Authorize" if no repositories are available -->
+  <a *ngIf="repositories.length === 0" [href]="'/authorize-' + platform" class="btn btn-primary">Authorize</a>
 
   <select *ngIf="repositories.length > 0" class="form-select mt-3">
     <option *ngFor="let repo of repositories" [value]="repo.name">{{ repo.name }}</option>

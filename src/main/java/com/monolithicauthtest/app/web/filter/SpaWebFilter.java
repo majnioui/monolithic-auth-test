@@ -24,8 +24,11 @@ public class SpaWebFilter extends OncePerRequestFilter {
             !path.startsWith("/h2-console") &&
             !path.startsWith("/testgit") &&
             !path.startsWith("/authorize-github") &&
+            !path.startsWith("/authorize-gitlab") &&
             !path.startsWith("/login/oauth2/code/github") &&
+            !path.startsWith("/login/oauth2/code/gitlab") &&
             !path.startsWith("/user/repositories") &&
+            !path.startsWith("/gitlab/repositories") &&
             !path.contains(".") &&
             path.matches("/(.*)")
         ) {
