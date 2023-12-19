@@ -5,11 +5,11 @@ import { Observable } from 'rxjs';
 @Injectable({
   providedIn: 'root',
 })
-export class GithubService {
+export class AuthorizationService {
   constructor(private http: HttpClient) {}
 
-  getUserRepositories(): Observable<any[]> {
-    return this.http.get<any[]>('/user/repositories');
+  getGithubRepositories(): Observable<any[]> {
+    return this.http.get<any[]>('/github/repositories');
   }
 
   getGitLabRepositories(): Observable<any[]> {
