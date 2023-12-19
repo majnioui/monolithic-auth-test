@@ -24,13 +24,13 @@ public class AuthorizationController {
     @Value("${gitlab.client-id}")
     private String gitlabClientId;
 
-    private final AuthorizationService AuthorizationService;
+    private final AuthorizationService authorizationService;
     private final GitrepRepository gitrepRepository;
 
     private static final Logger log = LoggerFactory.getLogger(AuthorizationController.class);
 
     public AuthorizationController(AuthorizationService AuthorizationService, GitrepRepository gitrepRepository) {
-        this.AuthorizationService = AuthorizationService;
+        this.authorizationService = AuthorizationService;
         this.gitrepRepository = gitrepRepository;
     }
 
@@ -56,13 +56,13 @@ public class AuthorizationController {
     public void handleGitHubRedirect(@RequestParam("code") String code, HttpServletResponse response) {
         log.info("GitHub callback triggered with code: {}", code);
         try {
-            String accessToken = AuthorizationService.exchangeCodeForAccessToken(code);
+            String accessToken = authorizationService.exchangeCodeForAccessToken(code);
             log.debug("Received access token: {}", accessToken);
 
             if (accessToken != null) {
                 // Update Gitrep with the new access token and platform type
                 String clientId = "1001"; // Hardcoded client ID for testing only
-                AuthorizationService.updateAccessToken(clientId, accessToken, Gitrep.PlatformType.GITHUB);
+                authorizationService.updateAccessToken(clientId, accessToken, Gitrep.PlatformType.GITHUB);
                 log.info("Access token updated successfully in Gitrep entity for GitHub");
 
                 // Redirect to the test-github page aka back to the authorize/refresh page
@@ -86,13 +86,13 @@ public class AuthorizationController {
     public void handleGitLabRedirect(@RequestParam("code") String code, HttpServletResponse response) {
         log.info("GitLab callback triggered with code: {}", code);
         try {
-            String accessToken = AuthorizationService.exchangeCodeForGitLabAccessToken(code);
+            String accessToken = authorizationService.exchangeCodeForGitLabAccessToken(code);
             log.debug("Received GitLab access token: {}", accessToken);
 
             if (accessToken != null) {
                 // Update Gitrep with the new access token and platform type
                 String clientId = "1001"; // Example client ID
-                AuthorizationService.updateAccessToken(clientId, accessToken, Gitrep.PlatformType.GITLAB);
+                authorizationService.updateAccessToken(clientId, accessToken, Gitrep.PlatformType.GITLAB);
                 log.info("GitLab access token updated successfully in Gitrep entity for GitLab");
 
                 // Redirect to an appropriate page for GitLab
@@ -113,7 +113,7 @@ public class AuthorizationController {
 
     @GetMapping("/github/repositories")
     public ResponseEntity<List<Map<String, Object>>> getGithubRepositories() {
-        List<Map<String, Object>> repositories = AuthorizationService.getRepositories();
+        List<Map<String, Object>> repositories = authorizationService.getRepositories();
         if (repositories.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -122,7 +122,7 @@ public class AuthorizationController {
 
     @GetMapping("/gitlab/repositories")
     public ResponseEntity<List<Map<String, Object>>> getGitLabRepositories() {
-        List<Map<String, Object>> repositories = AuthorizationService.getGitLabRepositories();
+        List<Map<String, Object>> repositories = authorizationService.getGitLabRepositories();
         return ResponseEntity.ok(repositories);
     }
 }
