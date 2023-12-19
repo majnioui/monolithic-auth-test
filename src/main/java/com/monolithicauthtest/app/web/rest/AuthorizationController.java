@@ -34,6 +34,7 @@ public class AuthorizationController {
         this.gitrepRepository = gitrepRepository;
     }
 
+    // Github Authorization
     @GetMapping("/authorize-github")
     public void initiateAuthorization(HttpServletResponse response) throws IOException {
         String scopes = "read:user,repo";
@@ -44,14 +45,14 @@ public class AuthorizationController {
     // GitLab Authorization
     @GetMapping("/authorize-gitlab")
     public void initiateGitLabAuthorization(HttpServletResponse response) throws IOException {
-        //String scopes = "read_repository";
         String redirectUrl =
             "http://192.168.100.130/oauth/authorize?client_id=" +
             gitlabClientId +
-            "&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/gitlab";
+            "&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/gitlab"; // localhost:8080 to be changed with the real path
         response.sendRedirect(redirectUrl);
     }
 
+    // Github OAuth Callback
     @GetMapping("/login/oauth2/code/github")
     public void handleGitHubRedirect(@RequestParam("code") String code, HttpServletResponse response) {
         log.info("GitHub callback triggered with code: {}", code);
@@ -65,7 +66,6 @@ public class AuthorizationController {
                 authorizationService.updateAccessToken(clientId, accessToken, Gitrep.PlatformType.GITHUB);
                 log.info("Access token updated successfully in Gitrep entity for GitHub");
 
-                // Redirect to the test-github page aka back to the authorize/refresh page
                 response.sendRedirect("/authorization");
             } else {
                 log.error("Access token was null. Not saved in Gitrep entity.");
@@ -95,7 +95,6 @@ public class AuthorizationController {
                 authorizationService.updateAccessToken(clientId, accessToken, Gitrep.PlatformType.GITLAB);
                 log.info("GitLab access token updated successfully in Gitrep entity for GitLab");
 
-                // Redirect to an appropriate page for GitLab
                 response.sendRedirect("/authorization");
             } else {
                 log.error("GitLab access token was null. Not saved in Gitrep entity.");
