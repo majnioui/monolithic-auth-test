@@ -19,9 +19,9 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
-public class GitHubService {
+public class AuthorizationService {
 
-    private final Logger log = LoggerFactory.getLogger(GitHubService.class);
+    private final Logger log = LoggerFactory.getLogger(AuthorizationService.class);
     private final RestTemplate restTemplate;
     private final GitrepRepository gitrepRepository;
 
@@ -39,7 +39,7 @@ public class GitHubService {
     @Value("${gitlab.client-secret}")
     private String gitlabClientSecret;
 
-    public GitHubService(
+    public AuthorizationService(
         GitrepRepository gitrepRepository,
         @Value("${github.client-id}") String clientId,
         @Value("${github.client-secret}") String clientSecret

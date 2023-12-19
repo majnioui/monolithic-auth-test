@@ -69,7 +69,7 @@ public class SecurityConfiguration {
                     .requestMatchers(mvc.pattern("/authorize-gitlab")).permitAll()
                     .requestMatchers(mvc.pattern("/login/oauth2/code/github")).permitAll()
                     .requestMatchers(mvc.pattern("/login/oauth2/code/gitlab")).permitAll()
-                    .requestMatchers(mvc.pattern("/user/repositories")).permitAll()
+                    .requestMatchers(mvc.pattern("/github/repositories")).permitAll()
                     .requestMatchers(mvc.pattern("/gitlab/repositories")).permitAll()
                     .requestMatchers(mvc.pattern("/testgit")).permitAll()
                     .requestMatchers(mvc.pattern("/index.html"), mvc.pattern("/*.js"), mvc.pattern("/*.txt"), mvc.pattern("/*.json"), mvc.pattern("/*.map"), mvc.pattern("/*.css")).permitAll()

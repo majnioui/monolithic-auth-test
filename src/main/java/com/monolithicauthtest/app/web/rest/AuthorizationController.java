@@ -2,12 +2,11 @@ package com.monolithicauthtest.app.web.rest;
 
 import com.monolithicauthtest.app.domain.Gitrep;
 import com.monolithicauthtest.app.repository.GitrepRepository;
-import com.monolithicauthtest.app.service.GitHubService;
+import com.monolithicauthtest.app.service.AuthorizationService;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class GitHubOAuthController {
+public class AuthorizationController {
 
     @Value("${github.client-id}")
     private String clientId;
@@ -25,13 +24,13 @@ public class GitHubOAuthController {
     @Value("${gitlab.client-id}")
     private String gitlabClientId;
 
-    private final GitHubService gitHubService;
+    private final AuthorizationService AuthorizationService;
     private final GitrepRepository gitrepRepository;
 
-    private static final Logger log = LoggerFactory.getLogger(GitHubOAuthController.class);
+    private static final Logger log = LoggerFactory.getLogger(AuthorizationController.class);
 
-    public GitHubOAuthController(GitHubService gitHubService, GitrepRepository gitrepRepository) {
-        this.gitHubService = gitHubService;
+    public AuthorizationController(AuthorizationService AuthorizationService, GitrepRepository gitrepRepository) {
+        this.AuthorizationService = AuthorizationService;
         this.gitrepRepository = gitrepRepository;
     }
 
@@ -57,17 +56,17 @@ public class GitHubOAuthController {
     public void handleGitHubRedirect(@RequestParam("code") String code, HttpServletResponse response) {
         log.info("GitHub callback triggered with code: {}", code);
         try {
-            String accessToken = gitHubService.exchangeCodeForAccessToken(code);
+            String accessToken = AuthorizationService.exchangeCodeForAccessToken(code);
             log.debug("Received access token: {}", accessToken);
 
             if (accessToken != null) {
                 // Update Gitrep with the new access token and platform type
                 String clientId = "1001"; // Hardcoded client ID for testing only
-                gitHubService.updateAccessToken(clientId, accessToken, Gitrep.PlatformType.GITHUB);
+                AuthorizationService.updateAccessToken(clientId, accessToken, Gitrep.PlatformType.GITHUB);
                 log.info("Access token updated successfully in Gitrep entity for GitHub");
 
                 // Redirect to the test-github page aka back to the authorize/refresh page
-                response.sendRedirect("/test-github");
+                response.sendRedirect("/authorization");
             } else {
                 log.error("Access token was null. Not saved in Gitrep entity.");
                 response.sendRedirect("/error?message=Failed to obtain access token");
@@ -87,17 +86,17 @@ public class GitHubOAuthController {
     public void handleGitLabRedirect(@RequestParam("code") String code, HttpServletResponse response) {
         log.info("GitLab callback triggered with code: {}", code);
         try {
-            String accessToken = gitHubService.exchangeCodeForGitLabAccessToken(code);
+            String accessToken = AuthorizationService.exchangeCodeForGitLabAccessToken(code);
             log.debug("Received GitLab access token: {}", accessToken);
 
             if (accessToken != null) {
                 // Update Gitrep with the new access token and platform type
                 String clientId = "1001"; // Example client ID
-                gitHubService.updateAccessToken(clientId, accessToken, Gitrep.PlatformType.GITLAB);
+                AuthorizationService.updateAccessToken(clientId, accessToken, Gitrep.PlatformType.GITLAB);
                 log.info("GitLab access token updated successfully in Gitrep entity for GitLab");
 
                 // Redirect to an appropriate page for GitLab
-                response.sendRedirect("/test-github");
+                response.sendRedirect("/authorization");
             } else {
                 log.error("GitLab access token was null. Not saved in Gitrep entity.");
                 response.sendRedirect("/error?message=Failed to obtain GitLab access token");
@@ -112,9 +111,9 @@ public class GitHubOAuthController {
         }
     }
 
-    @GetMapping("/user/repositories")
-    public ResponseEntity<List<Map<String, Object>>> getUserRepositories() {
-        List<Map<String, Object>> repositories = gitHubService.getRepositories();
+    @GetMapping("/github/repositories")
+    public ResponseEntity<List<Map<String, Object>>> getGithubRepositories() {
+        List<Map<String, Object>> repositories = AuthorizationService.getRepositories();
         if (repositories.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -123,7 +122,7 @@ public class GitHubOAuthController {
 
     @GetMapping("/gitlab/repositories")
     public ResponseEntity<List<Map<String, Object>>> getGitLabRepositories() {
-        List<Map<String, Object>> repositories = gitHubService.getGitLabRepositories();
+        List<Map<String, Object>> repositories = AuthorizationService.getGitLabRepositories();
         return ResponseEntity.ok(repositories);
     }
 }

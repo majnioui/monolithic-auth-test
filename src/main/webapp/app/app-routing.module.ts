@@ -9,7 +9,7 @@ import { errorRoute } from './layouts/error/error.route';
 import HomeComponent from './home/home.component';
 import NavbarComponent from './layouts/navbar/navbar.component';
 import LoginComponent from './login/login.component';
-import { TestGithubComponent } from './test-github/test-github.component';
+import { AuthorizationComponent } from './authorization/authorization.component';
 
 @NgModule({
   imports: [
@@ -26,8 +26,8 @@ import { TestGithubComponent } from './test-github/test-github.component';
           outlet: 'navbar',
         },
         {
-          path: 'test-github',
-          component: TestGithubComponent,
+          path: 'authorization',
+          component: AuthorizationComponent,
         },
         {
           path: 'admin',
