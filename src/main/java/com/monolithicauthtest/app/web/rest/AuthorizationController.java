@@ -29,8 +29,8 @@ public class AuthorizationController {
 
     private static final Logger log = LoggerFactory.getLogger(AuthorizationController.class);
 
-    public AuthorizationController(AuthorizationService AuthorizationService, GitrepRepository gitrepRepository) {
-        this.authorizationService = AuthorizationService;
+    public AuthorizationController(AuthorizationService authorizationService, GitrepRepository gitrepRepository) {
+        this.authorizationService = authorizationService;
         this.gitrepRepository = gitrepRepository;
     }
 
