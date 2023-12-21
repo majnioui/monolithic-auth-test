@@ -22,7 +22,8 @@
       "accesstoken": "Accesstoken",
       "client": "Client",
       "platformType": "Platforme",
-      "clientUrl": "Url"
+      "clientUrl": "Url",
+      "username": "Username"
     }
   }
 }
