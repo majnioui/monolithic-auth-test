@@ -67,6 +67,7 @@ public class SecurityConfiguration {
                 authz
                     .requestMatchers(mvc.pattern("/authorize-github")).permitAll()
                     .requestMatchers(mvc.pattern("/authorize-gitlab")).permitAll()
+                    .requestMatchers(mvc.pattern("/api/generate-pr")).permitAll()
                     .requestMatchers(mvc.pattern("/api/save-client-url")).permitAll()
                     .requestMatchers(mvc.pattern("/login/oauth2/code/github")).permitAll()
                     .requestMatchers(mvc.pattern("/login/oauth2/code/gitlab")).permitAll()

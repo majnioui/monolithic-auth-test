@@ -11,6 +11,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,6 +36,19 @@ public class AuthorizationController {
     public AuthorizationController(AuthorizationService authorizationService, GitrepRepository gitrepRepository) {
         this.authorizationService = authorizationService;
         this.gitrepRepository = gitrepRepository;
+    }
+
+    @PostMapping("/api/generate-pr")
+    public ResponseEntity<?> generatePullRequest(@RequestBody Map<String, String> requestData) {
+        String repoName = requestData.get("repoName");
+        String platformType = requestData.get("platformType");
+        try {
+            authorizationService.createPullRequest(platformType, repoName);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("Error generating PR", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to create PR");
+        }
     }
 
     @PostMapping("/api/save-client-url")

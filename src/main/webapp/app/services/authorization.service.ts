@@ -19,4 +19,10 @@ export class AuthorizationService {
   saveClientUrl(clientUrl: string, platformType: string): Observable<any> {
     return this.http.post('/api/save-client-url', { clientUrl, platformType });
   }
+
+  generatePullRequest(platform: 'github' | 'gitlab', repoName: string): Observable<any> {
+    const url = `/api/generate-pr`;
+    const payload = { platform, repoName };
+    return this.http.post(url, payload);
+  }
 }

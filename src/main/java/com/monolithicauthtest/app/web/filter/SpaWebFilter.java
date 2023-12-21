@@ -29,6 +29,7 @@ public class SpaWebFilter extends OncePerRequestFilter {
             !path.startsWith("/github/repositories") &&
             !path.startsWith("/gitlab/repositories") &&
             !path.startsWith("/api/save-client-url") &&
+            !path.startsWith("/api/generate-pr") &&
             !path.contains(".") &&
             path.matches("/(.*)")
         ) {

@@ -20,13 +20,29 @@
 
   <!-- GitHub Repository List -->
   <select *ngIf="githubRepositories.length > 0 && platform === 'github'" class="form-select mt-3">
-    <option *ngFor="let repo of githubRepositories" [value]="repo.name">{{ repo.name }}</option>
+    <option *ngFor="let repo of githubRepositories" [ngValue]="repo">{{ repo.name }}</option>
   </select>
 
   <!-- GitLab Repository List -->
   <select *ngIf="gitlabRepositories.length > 0 && platform === 'gitlab'" class="form-select mt-3">
     <option *ngFor="let repo of gitlabRepositories" [value]="repo.name">{{ repo.name }}</option>
   </select>
+
+  <!-- Dropdown for selecting a repository -->
+  <div
+    *ngIf="(platform === 'github' && githubRepositories.length > 0) || (platform === 'gitlab' && gitlabRepositories.length > 0)"
+    class="mt-3"
+  >
+    <label>Select Repository:</label>
+    <select [(ngModel)]="selectedRepository" class="form-select">
+      <option *ngFor="let repo of platform === 'github' ? githubRepositories : gitlabRepositories" [ngValue]="repo">{{ repo.name }}</option>
+    </select>
+  </div>
+
+  <!-- Button to generate PR -->
+  <div class="mt-3 text-center">
+    <button (click)="generatePullRequest()" class="btn btn-info">Generate PR</button>
+  </div>
 
   <!-- Information text -->
   <p class="info-text mt-3 text-center">
