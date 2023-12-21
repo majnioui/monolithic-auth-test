@@ -13,6 +13,7 @@ export class AuthorizationComponent implements OnInit {
   gitlabRepositories: any[] = [];
   platform: 'github' | 'gitlab' = 'github';
   urlValue: string = '';
+  selectedRepository: any = null;
 
   constructor(
     private http: HttpClient,
@@ -57,5 +58,20 @@ export class AuthorizationComponent implements OnInit {
   }
   switchPlatform(newPlatform: 'github' | 'gitlab') {
     this.platform = newPlatform;
+  }
+
+  generatePullRequest() {
+    if (!this.selectedRepository) {
+      console.error('No repository selected');
+      return;
+    }
+
+    const repoName = this.selectedRepository.name;
+    console.log('Generating PR for:', repoName);
+
+    this.AuthorizationService.generatePullRequest(this.platform, repoName).subscribe({
+      next: () => console.log('PR generation initiated for', repoName),
+      error: error => console.error('Error initiating PR generation', error),
+    });
   }
 }

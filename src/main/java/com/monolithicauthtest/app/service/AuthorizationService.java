@@ -121,6 +121,74 @@ public class AuthorizationService {
         }
     }
 
+    public void createPullRequest(String platformType, String repoName) throws Exception {
+        Optional<Gitrep> gitrepOpt = gitrepRepository.findByClientidAndPlatformType(
+            "1001",
+            platformType.equals("github") ? Gitrep.PlatformType.GITHUB : Gitrep.PlatformType.GITLAB
+        );
+
+        if (gitrepOpt.isPresent()) {
+            Gitrep gitrep = gitrepOpt.get();
+            String accessToken = gitrep.getAccesstoken();
+            String username = gitrep.getUsername();
+
+            if (platformType.equals("github")) {
+                createGitHubPullRequest(accessToken, username, repoName);
+            } else if (platformType.equals("gitlab")) {
+                createGitLabPullRequest(accessToken, username, repoName);
+            } else {
+                throw new IllegalArgumentException("Unsupported platform");
+            }
+        } else {
+            throw new IllegalStateException("Gitrep entity not found for the given platform");
+        }
+    }
+
+    private void createGitHubPullRequest(String accessToken, String username, String repoName) throws Exception {
+        String url = "https://api.github.com/repos/" + username + "/" + repoName + "/pulls";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(accessToken);
+
+        Map<String, Object> prDetails = new HashMap<>();
+        prDetails.put("title", "Testing creating PR using API");
+        prDetails.put("head", "master"); // Replace with your branch name
+        prDetails.put("base", "main"); // Replace with your base branch
+        prDetails.put("body", "Description of the PR");
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(prDetails, headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new Exception("Failed to create GitHub Pull Request: " + response.getBody());
+        }
+    }
+
+    private void createGitLabPullRequest(String accessToken, String username, String repoName) throws Exception {
+        String projectId = username + "%2F" + repoName; // GitLab requires the project ID to be URL-encoded
+        String url = "http://192.168.100.130/api/v4/projects/" + projectId + "/merge_requests";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(accessToken);
+
+        Map<String, Object> mrDetails = new HashMap<>();
+        mrDetails.put("title", "Your MR Title");
+        mrDetails.put("source_branch", "master"); // Replace with your branch name
+        mrDetails.put("target_branch", "main"); // Replace with your target branch
+        mrDetails.put("description", "Description of the MR");
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(mrDetails, headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new Exception("Failed to create GitLab Merge Request: " + response.getBody());
+        }
+    }
+
     public String exchangeCodeForAccessToken(String code) {
         String uri = "https://github.com/login/oauth/access_token";
 
