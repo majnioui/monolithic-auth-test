@@ -36,6 +36,7 @@
           <th scope="col" jhiSortBy="clientid"><span jhiTranslate="monolithicauthtestApp.gitrep.clientid">Clientid</span></th>
           <th scope="col" jhiSortBy="accesstoken"><span jhiTranslate="monolithicauthtestApp.gitrep.accesstoken">Accesstoken</span></th>
           <th scope="col" jhiSortBy="platformType"><span jhiTranslate="monolithicauthtestApp.gitrep.platformType">Platform Type</span></th>
+          <th scope="col" jhiSortBy="clientUrl"><span jhiTranslate="monolithicauthtestApp.gitrep.clientUrl">URL</span></th>
           <th scope="col" jhiSortBy="client.id"><span jhiTranslate="monolithicauthtestApp.gitrep.client">Client</span></th>
           <th scope="col"></th>
         </tr>
@@ -48,6 +49,7 @@
           <td>{{ gitrep.clientid }}</td>
           <td>{{ gitrep.accesstoken }}</td>
           <td>{{ gitrep.platformType }}</td>
+          <td>{{ gitrep.clientUrl }}</td>
           <td *ngIf="gitrep.client">
             <a [routerLink]="['/client', gitrep.client.id, 'view']">{{ gitrep.client?.id }}</a>
           </td>
