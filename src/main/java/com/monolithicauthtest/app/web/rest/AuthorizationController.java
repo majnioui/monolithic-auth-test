@@ -99,10 +99,13 @@ public class AuthorizationController {
             log.debug("Received access token: {}", accessToken);
 
             if (accessToken != null) {
-                // Update Gitrep with the new access token and platform type
+                // Fetch the GitHub username
+                String username = authorizationService.getGitHubUsername(accessToken);
+
+                // Update Gitrep with the new access token, platform type, and username
                 String clientId = "1001"; // Hardcoded client ID for testing only
-                authorizationService.updateAccessToken(clientId, accessToken, Gitrep.PlatformType.GITHUB);
-                log.info("Access token updated successfully in Gitrep entity for GitHub");
+                authorizationService.updateAccessTokenAndUsername(clientId, accessToken, Gitrep.PlatformType.GITHUB, username);
+                log.info("Access token and username updated successfully in Gitrep entity for GitHub");
 
                 response.sendRedirect("/authorization");
             } else {
@@ -128,10 +131,12 @@ public class AuthorizationController {
             log.debug("Received GitLab access token: {}", accessToken);
 
             if (accessToken != null) {
-                // Update Gitrep with the new access token and platform type
+                // Fetch the GitLab username
+                String username = authorizationService.getGitLabUsername(accessToken);
+                // Update Gitrep with the new access token, platform type, and username
                 String clientId = "1001"; // Example client ID
-                authorizationService.updateAccessToken(clientId, accessToken, Gitrep.PlatformType.GITLAB);
-                log.info("GitLab access token updated successfully in Gitrep entity for GitLab");
+                authorizationService.updateAccessTokenAndUsername(clientId, accessToken, Gitrep.PlatformType.GITLAB, username);
+                log.info("Access token and username updated successfully in Gitrep entity for GitLab");
 
                 response.sendRedirect("/authorization");
             } else {

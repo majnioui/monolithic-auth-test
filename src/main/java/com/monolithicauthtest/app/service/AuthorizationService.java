@@ -51,23 +51,74 @@ public class AuthorizationService {
     }
 
     @Transactional
-    public void updateAccessToken(String clientId, String accessToken, PlatformType platformType) {
-        // Try to find an existing Gitrep entity
+    public void updateAccessTokenAndUsername(String clientId, String accessToken, PlatformType platformType, String username) {
+        // Similar to updateAccessToken but also sets the username
         Optional<Gitrep> existingGitrep = gitrepRepository.findByClientidAndPlatformType(clientId, platformType);
         Gitrep gitrep;
         if (existingGitrep.isPresent()) {
-            // Update the existing entity
             gitrep = existingGitrep.get();
             gitrep.setAccesstoken(accessToken);
+            gitrep.setUsername(username);
         } else {
-            // Create a new entity if it doesn't exist
             gitrep = new Gitrep();
             gitrep.setClientid(clientId);
             gitrep.setAccesstoken(accessToken);
+            gitrep.setUsername(username);
             gitrep.setPlatformType(platformType);
         }
-        // Save the Gitrep entity
         gitrepRepository.save(gitrep);
+    }
+
+    public String getGitLabUsername(String accessToken) {
+        // Retrieve the Gitrep entity for GitLab
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType("1001", Gitrep.PlatformType.GITLAB);
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130");
+        String uri = baseUrl.endsWith("/") ? baseUrl + "api/v4/user" : baseUrl + "/api/v4/user";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                uri,
+                HttpMethod.GET,
+                request,
+                new ParameterizedTypeReference<Map<String, Object>>() {}
+            );
+
+            Map<String, Object> responseBody = response.getBody();
+            return responseBody != null ? (String) responseBody.get("username") : null;
+        } catch (Exception e) {
+            log.error("Error while fetching GitLab user information", e);
+            return null;
+        }
+    }
+
+    public String getGitHubUsername(String accessToken) {
+        // Retrieve the Gitrep entity for GitHub
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType("1001", Gitrep.PlatformType.GITHUB);
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("https://api.github.com");
+        String uri = baseUrl.endsWith("/") ? baseUrl + "user" : baseUrl + "/user";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                uri,
+                HttpMethod.GET,
+                request,
+                new ParameterizedTypeReference<Map<String, Object>>() {}
+            );
+
+            Map<String, Object> responseBody = response.getBody();
+            return responseBody != null ? (String) responseBody.get("login") : null;
+        } catch (Exception e) {
+            log.error("Error while fetching GitHub user information", e);
+            return null;
+        }
     }
 
     public String exchangeCodeForAccessToken(String code) {
