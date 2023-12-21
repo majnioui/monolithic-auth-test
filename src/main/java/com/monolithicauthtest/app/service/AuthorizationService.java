@@ -48,21 +48,25 @@ public class AuthorizationService {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.gitrepRepository = gitrepRepository;
-
-        // Log to confirm values are loaded
-        log.info("GitHub Client ID: {}", clientId);
-        log.info("GitHub Client Secret: {}", clientSecret);
     }
 
     @Transactional
     public void updateAccessToken(String clientId, String accessToken, PlatformType platformType) {
-        // Delete existing tokens for the client and platform
-        gitrepRepository.deleteByClientidAndPlatformType(clientId, platformType);
-
-        Gitrep gitrep = new Gitrep();
-        gitrep.setClientid(clientId);
-        gitrep.setAccesstoken(accessToken);
-        gitrep.setPlatformType(platformType);
+        // Try to find an existing Gitrep entity
+        Optional<Gitrep> existingGitrep = gitrepRepository.findByClientidAndPlatformType(clientId, platformType);
+        Gitrep gitrep;
+        if (existingGitrep.isPresent()) {
+            // Update the existing entity
+            gitrep = existingGitrep.get();
+            gitrep.setAccesstoken(accessToken);
+        } else {
+            // Create a new entity if it doesn't exist
+            gitrep = new Gitrep();
+            gitrep.setClientid(clientId);
+            gitrep.setAccesstoken(accessToken);
+            gitrep.setPlatformType(platformType);
+        }
+        // Save the Gitrep entity
         gitrepRepository.save(gitrep);
     }
 
@@ -134,23 +138,23 @@ public class AuthorizationService {
             }
         } catch (HttpClientErrorException e) {
             log.error("HTTP error during GitLab token exchange: {}", e.getStatusCode());
-            log.error("Response body: {}", e.getResponseBodyAsString());
             return null;
         } catch (Exception e) {
-            log.error("Error while exchanging code for GitLab access token", e);
             return null;
         }
     }
 
     public List<Map<String, Object>> getRepositories() {
-        // Retrieve the latest GitHub access token
         String accessToken = retrieveAccessToken(Gitrep.PlatformType.GITHUB);
         if (accessToken == null) {
             return Collections.emptyList();
         }
 
-        // Existing logic to fetch GitHub repositories
-        String uri = "https://api.github.com/user/repos";
+        // Retrieve the Gitrep entity for GitHub
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType("1001", Gitrep.PlatformType.GITHUB);
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("https://api.github.com");
+        String uri = baseUrl.endsWith("/") ? baseUrl + "user/repos" : baseUrl + "/user/repos";
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
         HttpEntity<String> request = new HttpEntity<>(headers);
@@ -164,7 +168,7 @@ public class AuthorizationService {
             );
             return response.getBody();
         } catch (Exception e) {
-            log.error("Service: Error fetching repositories ", e);
+            log.error("Service: Error fetching GitHub repositories ", e);
             return Collections.emptyList();
         }
     }
@@ -176,7 +180,11 @@ public class AuthorizationService {
             return Collections.emptyList();
         }
 
-        String uri = "http://192.168.100.130/api/v4/projects"; // GitLab API endpoint
+        // Retrieve the Gitrep entity for GitLab
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType("1001", Gitrep.PlatformType.GITLAB);
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130");
+        String uri = baseUrl.endsWith("/") ? baseUrl + "api/v4/projects" : baseUrl + "/api/v4/projects";
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
         HttpEntity<String> request = new HttpEntity<>(headers);

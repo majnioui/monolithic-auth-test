@@ -1,9 +1,13 @@
 <div class="authorization-container">
   <h2 class="text-center">Choose your authorization method</h2>
 
+  <div class="text-center mt-3">
+    <input type="text" class="form-control" placeholder="Enter text here" [(ngModel)]="urlValue" />
+  </div>
+
   <div class="button-group text-center">
-    <button (click)="switchPlatform('github')" class="btn btn-primary btn-lg">GitHub</button>
-    <button (click)="switchPlatform('gitlab')" class="btn btn-success btn-lg">GitLab</button>
+    <button (click)="saveAndSwitchPlatform('github')" class="btn btn-primary btn-sm">GitHub</button>
+    <button (click)="saveAndSwitchPlatform('gitlab')" class="btn btn-success btn-sm">GitLab</button>
   </div>
 
   <!-- Show "Authorize" if no repositories are available for the current platform -->

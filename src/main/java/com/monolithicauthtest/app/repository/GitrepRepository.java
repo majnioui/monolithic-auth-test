@@ -21,4 +21,7 @@ public interface GitrepRepository extends JpaRepository<Gitrep, Long> {
     @Modifying
     @Query("DELETE FROM Gitrep g WHERE g.clientid = :clientId AND g.platformType = :platformType")
     void deleteByClientidAndPlatformType(@Param("clientId") String clientId, @Param("platformType") Gitrep.PlatformType platformType);
+
+    Optional<Gitrep> findByClientid(String clientId);
+    Optional<Gitrep> findByClientidAndPlatformType(String clientId, Gitrep.PlatformType platformType);
 }

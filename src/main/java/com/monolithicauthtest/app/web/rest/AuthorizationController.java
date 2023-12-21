@@ -7,11 +7,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,6 +35,41 @@ public class AuthorizationController {
     public AuthorizationController(AuthorizationService authorizationService, GitrepRepository gitrepRepository) {
         this.authorizationService = authorizationService;
         this.gitrepRepository = gitrepRepository;
+    }
+
+    @PostMapping("/api/save-client-url")
+    public ResponseEntity<Void> saveClientUrl(@RequestBody Map<String, String> request) {
+        String clientUrl = request.get("clientUrl");
+        String platformType = request.get("platformType");
+        final String clientId = "1001"; // Specific client ID
+
+        // Check if clientUrl is empty or null, and return if it is
+        if (clientUrl == null || clientUrl.trim().isEmpty()) {
+            return ResponseEntity.ok().build(); // or use ResponseEntity.badRequest().build() to indicate a bad request
+        }
+
+        // Check if a Gitrep entity exists with the same clientId and platformType
+        Optional<Gitrep> existingGitrep = gitrepRepository.findByClientidAndPlatformType(
+            clientId,
+            Gitrep.PlatformType.valueOf(platformType.toUpperCase())
+        );
+
+        Gitrep gitrep;
+        if (existingGitrep.isPresent()) {
+            // Update the existing entity
+            gitrep = existingGitrep.get();
+            gitrep.setClientUrl(clientUrl);
+        } else {
+            // Create a new entity if it doesn't exist
+            gitrep = new Gitrep();
+            gitrep.setClientid(clientId);
+            gitrep.setAccesstoken("XXX"); // Set the access token
+            gitrep.setClientUrl(clientUrl);
+            gitrep.setPlatformType(Gitrep.PlatformType.valueOf(platformType.toUpperCase()));
+        }
+
+        gitrepRepository.save(gitrep);
+        return ResponseEntity.ok().build();
     }
 
     // Github Authorization

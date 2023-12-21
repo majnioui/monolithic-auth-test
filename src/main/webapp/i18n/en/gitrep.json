@@ -21,7 +21,8 @@
       "clientid": "Clientid",
       "accesstoken": "Accesstoken",
       "client": "Client",
-      "platformType": "Platform"
+      "platformType": "Platform",
+      "clientUrl": "Url"
     }
   }
 }

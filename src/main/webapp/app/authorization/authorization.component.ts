@@ -12,6 +12,7 @@ export class AuthorizationComponent implements OnInit {
   githubRepositories: any[] = [];
   gitlabRepositories: any[] = [];
   platform: 'github' | 'gitlab' = 'github';
+  urlValue: string = '';
 
   constructor(
     private http: HttpClient,
@@ -42,8 +43,19 @@ export class AuthorizationComponent implements OnInit {
     });
   }
 
+  saveAndSwitchPlatform(newPlatform: 'github' | 'gitlab') {
+    this.AuthorizationService.saveClientUrl(this.urlValue, newPlatform).subscribe({
+      next: () => {
+        console.log('Client URL and platform type saved successfully');
+      },
+      error: error => {
+        console.error('Error saving client URL and platform type', error);
+      },
+    });
+
+    this.switchPlatform(newPlatform);
+  }
   switchPlatform(newPlatform: 'github' | 'gitlab') {
     this.platform = newPlatform;
-    this.getGithubRepositories();
   }
 }
