@@ -6,6 +6,7 @@ export interface IGitrep {
   accesstoken?: string | null;
   platformType?: 'GitHub' | 'GitLab';
   clientUrl?: string | null;
+  username?: string | null;
   client?: Pick<IClient, 'id'> | null;
 }
 

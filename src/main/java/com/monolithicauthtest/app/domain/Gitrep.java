@@ -31,6 +31,9 @@ public class Gitrep implements Serializable {
     @Column(name = "client_url")
     private String clientUrl;
 
+    @Column(name = "username")
+    private String username;
+
     @NotNull
     @Column(name = "accesstoken", nullable = false)
     private String accesstoken;
@@ -77,6 +80,14 @@ public class Gitrep implements Serializable {
 
     public void setClientUrl(String clientUrl) {
         this.clientUrl = clientUrl;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public PlatformType getPlatformType() {
