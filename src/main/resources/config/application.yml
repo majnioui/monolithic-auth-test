@@ -95,6 +95,10 @@ gitlab:
   client-id: 2aa0b71ef15ae76e769d064e748ed8245adb3e7d7f5c7b34e2147db7460c5e9a
   client-secret: gloas-b5e559a6ed74cdc4eded77902bc1010e54bfa9d9880daacd93b355a0b4d11131
 
+bitbucket:
+  client-id: MFUwmEePe9HP87yVd9
+  client-secret: QDZNdtVKb663SzNwwFhBtBJgNVdyRfhB
+
 spring:
   application:
     name: monolithicauthtest

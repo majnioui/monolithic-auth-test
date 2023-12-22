@@ -16,6 +16,10 @@ export class AuthorizationService {
     return this.http.get<any[]>('/gitlab/repositories');
   }
 
+  getBitbucketRepositories(): Observable<any[]> {
+    return this.http.get<any[]>('/bitbucket/repositories');
+  }
+
   saveClientUrl(clientUrl: string, platformType: string): Observable<any> {
     return this.http.post('/api/save-client-url', { clientUrl, platformType });
   }

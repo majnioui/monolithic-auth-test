@@ -11,6 +11,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +27,9 @@ public class AuthorizationController {
 
     @Value("${gitlab.client-id}")
     private String gitlabClientId;
+
+    @Value("${bitbucket.client-id}")
+    private String bitbucketClientId;
 
     private final AuthorizationService authorizationService;
     private final GitrepRepository gitrepRepository;
@@ -87,6 +91,16 @@ public class AuthorizationController {
             "http://192.168.100.130/oauth/authorize?client_id=" +
             gitlabClientId +
             "&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/gitlab"; // localhost:8080 to be changed with the real path
+        response.sendRedirect(redirectUrl);
+    }
+
+    // Bitbucket Authorization
+    @GetMapping("/authorize-bitbucket")
+    public void initiateBitbucketAuthorization(HttpServletResponse response) throws IOException {
+        String redirectUrl =
+            "https://bitbucket.org/site/oauth2/authorize?client_id=" +
+            bitbucketClientId +
+            "&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/bitbucket";
         response.sendRedirect(redirectUrl);
     }
 
@@ -153,6 +167,38 @@ public class AuthorizationController {
         }
     }
 
+    // Bitbucket OAuth Callback
+    @GetMapping("/login/oauth2/code/bitbucket")
+    public void handleBitbucketRedirect(@RequestParam("code") String code, HttpServletResponse response) {
+        log.info("Bitbucket callback triggered with code: {}", code);
+        try {
+            String accessToken = authorizationService.exchangeCodeForBitbucketAccessToken(code);
+            log.debug("Received Bitbucket access token: {}", accessToken);
+
+            if (accessToken != null) {
+                // Fetch the Bitbucket username
+                String username = authorizationService.getBitbucketUsername(accessToken);
+
+                // Update Gitrep with the new access token, platform type, and username
+                String clientId = "1001"; // Modify as needed
+                authorizationService.updateAccessTokenAndUsername(clientId, accessToken, Gitrep.PlatformType.BITBUCKET, username);
+                log.info("Access token and username updated successfully in Gitrep entity for Bitbucket");
+
+                response.sendRedirect("/authorization");
+            } else {
+                log.error("Bitbucket access token was null. Not saved in Gitrep entity.");
+                response.sendRedirect("/error?message=Failed to obtain Bitbucket access token");
+            }
+        } catch (Exception e) {
+            log.error("Error during Bitbucket OAuth process", e);
+            try {
+                response.sendRedirect("/error?message=Error during Bitbucket OAuth process");
+            } catch (IOException ex) {
+                log.error("Error during redirection to the error page", ex);
+            }
+        }
+    }
+
     @GetMapping("/github/repositories")
     public ResponseEntity<List<Map<String, Object>>> getGithubRepositories() {
         List<Map<String, Object>> repositories = authorizationService.getRepositories();
@@ -165,6 +211,22 @@ public class AuthorizationController {
     @GetMapping("/gitlab/repositories")
     public ResponseEntity<List<Map<String, Object>>> getGitLabRepositories() {
         List<Map<String, Object>> repositories = authorizationService.getGitLabRepositories();
+        if (repositories.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(repositories);
+    }
+
+    @GetMapping("/bitbucket/repositories")
+    public ResponseEntity<?> getBitbucketRepositories() {
+        try {
+            List<Map<String, Object>> repositories = authorizationService.getBitbucketRepositories();
+            if (repositories.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(repositories);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching repositories: " + e.getMessage());
+        }
     }
 }
