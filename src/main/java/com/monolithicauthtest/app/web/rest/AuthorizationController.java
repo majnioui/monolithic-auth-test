@@ -53,7 +53,20 @@ public class AuthorizationController {
 
     private String getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return userRepository.findOneByLogin(authentication.getName()).map(User::getId).map(String::valueOf).orElse(null); // Replace with a default value if necessary
+        if (authentication != null) {
+            log.info("Authentication name: {}", authentication.getName());
+            Optional<User> userOpt = userRepository.findOneByLogin(authentication.getName());
+            if (userOpt.isPresent()) {
+                String userId = userOpt.map(User::getId).map(String::valueOf).orElse(null);
+                log.info("Current User ID: {}", userId);
+                return userId;
+            } else {
+                log.warn("No user found with login: {}", authentication.getName());
+            }
+        } else {
+            log.warn("No authentication found in Security Context");
+        }
+        return null;
     }
 
     @PostMapping("/api/save-client-url")
@@ -184,21 +197,23 @@ public class AuthorizationController {
             log.debug("Received Bitbucket access token: {}", accessToken);
 
             if (accessToken != null) {
-                String username = authorizationService.getBitbucketUsername(accessToken);
-                String clientId = getCurrentUserId(); // Use the current user's ID
-                authorizationService.updateAccessTokenAndUsername(clientId, accessToken, Gitrep.PlatformType.BITBUCKET, username);
+                String userId = getCurrentUserId();
+                String username = authorizationService.getBitbucketUsername(accessToken, userId);
+                authorizationService.updateAccessTokenAndUsername(userId, accessToken, Gitrep.PlatformType.BITBUCKET, username);
                 log.info("Access token and username updated successfully in Gitrep entity for Bitbucket");
                 response.sendRedirect("/authorization");
             } else {
                 log.error("Bitbucket access token was null. Not saved in Gitrep entity.");
                 response.sendRedirect("/error?message=Failed to obtain Bitbucket access token");
             }
+        } catch (IOException ex) {
+            log.error("IOException during Bitbucket OAuth process", ex);
         } catch (Exception e) {
             log.error("Error during Bitbucket OAuth process", e);
             try {
                 response.sendRedirect("/error?message=Error during Bitbucket OAuth process");
             } catch (IOException ex) {
-                log.error("Error during redirection to the error page", ex);
+                log.error("IOException during redirection to the error page", ex);
             }
         }
     }

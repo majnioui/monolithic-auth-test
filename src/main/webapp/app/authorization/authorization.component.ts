@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { AccountService } from 'app/core/auth/account.service';
 import { AuthorizationService } from '../services/authorization.service';
+import { Account } from 'app/core/auth/account.model';
 
 @Component({
   selector: 'app-test-github',
@@ -14,13 +17,18 @@ export class AuthorizationComponent implements OnInit {
   bitbucketRepositories: any[] = [];
   platform: 'github' | 'gitlab' | 'bitbucket' = 'github';
   urlValue: string = '';
+  account: Account | null = null;
 
   constructor(
     private http: HttpClient,
+    private router: Router,
+    private accountService: AccountService,
     private AuthorizationService: AuthorizationService,
   ) {}
 
   ngOnInit() {
+    this.accountService.getAuthenticationState().subscribe(account => (this.account = account));
+
     this.getGithubRepositories();
     this.getBitbucketRepositories();
   }

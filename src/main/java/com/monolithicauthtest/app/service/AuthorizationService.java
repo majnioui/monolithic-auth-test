@@ -75,6 +75,7 @@ public class AuthorizationService {
             gitrep.setUsername(username);
             gitrep.setPlatformType(platformType);
         }
+        log.info("Updating Gitrep for clientId: {}, platformType: {}", clientId, platformType);
         gitrepRepository.save(gitrep);
     }
 
@@ -128,7 +129,7 @@ public class AuthorizationService {
         }
     }
 
-    public String getBitbucketUsername(String accessToken) {
+    public String getBitbucketUsername(String accessToken, String userId) {
         String uri = "https://api.bitbucket.org/2.0/user";
 
         HttpHeaders headers = new HttpHeaders();

@@ -1,53 +1,55 @@
-<div class="authorization-container">
-  <h2 class="text-center">Choose your authorization method</h2>
+<div *ngIf="account">
+  <div class="authorization-container">
+    <h2 class="text-center">Choose your authorization method</h2>
 
-  <div class="text-center mt-3">
-    <input type="text" class="form-control" placeholder="Enter text here" [(ngModel)]="urlValue" />
-  </div>
+    <div class="text-center mt-3">
+      <input type="text" class="form-control" placeholder="Enter text here" [(ngModel)]="urlValue" />
+    </div>
 
-  <div class="button-group text-center">
-    <button (click)="saveAndSwitchPlatform('github')" class="btn btn-primary btn-sm">GitHub</button>
-    <button (click)="saveAndSwitchPlatform('gitlab')" class="btn btn-success btn-sm">GitLab</button>
-    <button (click)="saveAndSwitchPlatform('bitbucket')" class="btn btn-info btn-sm">Bitbucket</button>
-  </div>
+    <div class="button-group text-center">
+      <button (click)="saveAndSwitchPlatform('github')" class="btn btn-primary btn-sm">GitHub</button>
+      <button (click)="saveAndSwitchPlatform('gitlab')" class="btn btn-success btn-sm">GitLab</button>
+      <button (click)="saveAndSwitchPlatform('bitbucket')" class="btn btn-info btn-sm">Bitbucket</button>
+    </div>
 
-  <!-- Show "Authorize" if no repositories are available for the current platform -->
-  <a
-    *ngIf="
-      (platform === 'github' && githubRepositories.length === 0) ||
-      (platform === 'gitlab' && gitlabRepositories.length === 0) ||
-      (platform === 'bitbucket' && bitbucketRepositories.length === 0)
-    "
-    [href]="'/authorize-' + platform"
-    class="btn btn-primary mt-3"
-    >Authorize</a
-  >
-
-  <!-- GitHub Repository List -->
-  <select *ngIf="githubRepositories.length > 0 && platform === 'github'" class="form-select mt-3">
-    <option *ngFor="let repo of githubRepositories" [value]="repo.name">{{ repo.name }}</option>
-  </select>
-
-  <!-- GitLab Repository List -->
-  <select *ngIf="gitlabRepositories.length > 0 && platform === 'gitlab'" class="form-select mt-3">
-    <option *ngFor="let repo of gitlabRepositories" [value]="repo.name">{{ repo.name }}</option>
-  </select>
-
-  <!-- Bitbucket Repository List -->
-  <select *ngIf="bitbucketRepositories.length > 0 && platform === 'bitbucket'" class="form-select mt-3">
-    <option *ngFor="let repo of bitbucketRepositories" [value]="repo.name">{{ repo.name }}</option>
-  </select>
-
-  <!-- Information text -->
-  <p class="info-text mt-3 text-center">
-    <small
+    <!-- Show "Authorize" if no repositories are available for the current platform -->
+    <a
       *ngIf="
-        (platform === 'github' && githubRepositories.length > 0) ||
-        (platform === 'gitlab' && gitlabRepositories.length > 0) ||
-        (platform === 'bitbucket' && bitbucketRepositories.length > 0)
+        (platform === 'github' && githubRepositories.length === 0) ||
+        (platform === 'gitlab' && gitlabRepositories.length === 0) ||
+        (platform === 'bitbucket' && bitbucketRepositories.length === 0)
       "
+      [href]="'/authorize-' + platform"
+      class="btn btn-primary mt-3"
+      >Authorize</a
     >
-      Click on <a [href]="'/authorize-' + platform" class="btn btn-link">Refresh</a> if the repo is recently added.
-    </small>
-  </p>
+
+    <!-- GitHub Repository List -->
+    <select *ngIf="githubRepositories.length > 0 && platform === 'github'" class="form-select mt-3">
+      <option *ngFor="let repo of githubRepositories" [value]="repo.name">{{ repo.name }}</option>
+    </select>
+
+    <!-- GitLab Repository List -->
+    <select *ngIf="gitlabRepositories.length > 0 && platform === 'gitlab'" class="form-select mt-3">
+      <option *ngFor="let repo of gitlabRepositories" [value]="repo.name">{{ repo.name }}</option>
+    </select>
+
+    <!-- Bitbucket Repository List -->
+    <select *ngIf="bitbucketRepositories.length > 0 && platform === 'bitbucket'" class="form-select mt-3">
+      <option *ngFor="let repo of bitbucketRepositories" [value]="repo.name">{{ repo.name }}</option>
+    </select>
+
+    <!-- Information text -->
+    <p class="info-text mt-3 text-center">
+      <small
+        *ngIf="
+          (platform === 'github' && githubRepositories.length > 0) ||
+          (platform === 'gitlab' && gitlabRepositories.length > 0) ||
+          (platform === 'bitbucket' && bitbucketRepositories.length > 0)
+        "
+      >
+        Click on <a [href]="'/authorize-' + platform" class="btn btn-link">Refresh</a> if the repo is recently added.
+      </small>
+    </p>
+  </div>
 </div>
