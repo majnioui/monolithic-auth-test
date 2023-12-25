@@ -330,7 +330,11 @@ public class AuthorizationService {
             return Collections.emptyList();
         }
 
-        String uri = "https://api.bitbucket.org/2.0/repositories/mo-flow-test";
+        // Retrieve the Gitrep entity for Bitbucket
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType("1001", Gitrep.PlatformType.BITBUCKET);
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("https://api.bitbucket.org/2.0/repositories/");
+        String uri = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
         HttpEntity<String> request = new HttpEntity<>(headers);
