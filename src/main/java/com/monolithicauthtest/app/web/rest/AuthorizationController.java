@@ -1,7 +1,9 @@
 package com.monolithicauthtest.app.web.rest;
 
 import com.monolithicauthtest.app.domain.Gitrep;
+import com.monolithicauthtest.app.domain.User;
 import com.monolithicauthtest.app.repository.GitrepRepository;
+import com.monolithicauthtest.app.repository.UserRepository;
 import com.monolithicauthtest.app.service.AuthorizationService;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -13,9 +15,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -33,20 +36,27 @@ public class AuthorizationController {
 
     private final AuthorizationService authorizationService;
     private final GitrepRepository gitrepRepository;
+    private final UserRepository userRepository;
 
     private static final Logger log = LoggerFactory.getLogger(AuthorizationController.class);
 
-    public AuthorizationController(AuthorizationService authorizationService, GitrepRepository gitrepRepository) {
+    public AuthorizationController(
+        AuthorizationService authorizationService,
+        GitrepRepository gitrepRepository,
+        UserRepository userRepository
+    ) {
         this.authorizationService = authorizationService;
         this.gitrepRepository = gitrepRepository;
+        this.userRepository = userRepository;
+    }
+
+    private String getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return userRepository.findOneByLogin(authentication.getName()).map(User::getId).map(String::valueOf).orElse(null); // Replace with a default value if necessary
     }
 
     @PostMapping("/api/save-client-url")
-    public ResponseEntity<Void> saveClientUrl(@RequestBody Map<String, String> request) {
-        String clientUrl = request.get("clientUrl");
-        String platformType = request.get("platformType");
-        final String clientId = "1001"; // CHANGE THIS
-
+    public ResponseEntity<Void> saveClientUrl(String clientId, String clientUrl, String platformType) {
         // Check if clientUrl is empty or null, and return if it is
         if (clientUrl == null || clientUrl.trim().isEmpty()) {
             return ResponseEntity.ok().build();
@@ -67,7 +77,7 @@ public class AuthorizationController {
             // Create a new entity if it doesn't exist
             gitrep = new Gitrep();
             gitrep.setClientid(clientId);
-            gitrep.setAccesstoken("XXX"); // Set the access token
+            gitrep.setAccesstoken("XXX"); // Placeholder for access token
             gitrep.setClientUrl(clientUrl);
             gitrep.setPlatformType(Gitrep.PlatformType.valueOf(platformType.toUpperCase()));
         }
@@ -113,14 +123,10 @@ public class AuthorizationController {
             log.debug("Received access token: {}", accessToken);
 
             if (accessToken != null) {
-                // Fetch the GitHub username
-                String username = authorizationService.getGitHubUsername(accessToken);
-
-                // Update Gitrep with the new access token, platform type, and username
-                String clientId = "1001"; // CHANGE THIS
-                authorizationService.updateAccessTokenAndUsername(clientId, accessToken, Gitrep.PlatformType.GITHUB, username);
+                String userId = getCurrentUserId();
+                String username = authorizationService.getGitHubUsername(accessToken, userId);
+                authorizationService.updateAccessTokenAndUsername(userId, accessToken, Gitrep.PlatformType.GITHUB, username);
                 log.info("Access token and username updated successfully in Gitrep entity for GitHub");
-
                 response.sendRedirect("/authorization");
             } else {
                 log.error("Access token was null. Not saved in Gitrep entity.");
@@ -145,13 +151,10 @@ public class AuthorizationController {
             log.debug("Received GitLab access token: {}", accessToken);
 
             if (accessToken != null) {
-                // Fetch the GitLab username
-                String username = authorizationService.getGitLabUsername(accessToken);
-                // Update Gitrep with the new access token, platform type, and username
-                String clientId = "1001"; // CHANGE THIS
-                authorizationService.updateAccessTokenAndUsername(clientId, accessToken, Gitrep.PlatformType.GITLAB, username);
+                String userId = getCurrentUserId();
+                String username = authorizationService.getGitLabUsername(accessToken, userId);
+                authorizationService.updateAccessTokenAndUsername(userId, accessToken, Gitrep.PlatformType.GITLAB, username);
                 log.info("Access token and username updated successfully in Gitrep entity for GitLab");
-
                 response.sendRedirect("/authorization");
             } else {
                 log.error("GitLab access token was null. Not saved in Gitrep entity.");
@@ -176,14 +179,10 @@ public class AuthorizationController {
             log.debug("Received Bitbucket access token: {}", accessToken);
 
             if (accessToken != null) {
-                // Fetch the Bitbucket username
                 String username = authorizationService.getBitbucketUsername(accessToken);
-
-                // Update Gitrep with the new access token, platform type, and username
-                String clientId = "1001"; // CHANGE THIS
+                String clientId = getCurrentUserId(); // Use the current user's ID
                 authorizationService.updateAccessTokenAndUsername(clientId, accessToken, Gitrep.PlatformType.BITBUCKET, username);
                 log.info("Access token and username updated successfully in Gitrep entity for Bitbucket");
-
                 response.sendRedirect("/authorization");
             } else {
                 log.error("Bitbucket access token was null. Not saved in Gitrep entity.");
@@ -201,7 +200,8 @@ public class AuthorizationController {
 
     @GetMapping("/github/repositories")
     public ResponseEntity<List<Map<String, Object>>> getGithubRepositories() {
-        List<Map<String, Object>> repositories = authorizationService.getRepositories();
+        String userId = getCurrentUserId(); // Get current user's ID
+        List<Map<String, Object>> repositories = authorizationService.getRepositories(userId);
         if (repositories.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -210,7 +210,8 @@ public class AuthorizationController {
 
     @GetMapping("/gitlab/repositories")
     public ResponseEntity<List<Map<String, Object>>> getGitLabRepositories() {
-        List<Map<String, Object>> repositories = authorizationService.getGitLabRepositories();
+        String userId = getCurrentUserId(); // Get current user's ID
+        List<Map<String, Object>> repositories = authorizationService.getGitLabRepositories(userId);
         if (repositories.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -220,7 +221,8 @@ public class AuthorizationController {
     @GetMapping("/bitbucket/repositories")
     public ResponseEntity<?> getBitbucketRepositories() {
         try {
-            List<Map<String, Object>> repositories = authorizationService.getBitbucketRepositories();
+            String userId = getCurrentUserId(); // Get current user's ID
+            List<Map<String, Object>> repositories = authorizationService.getBitbucketRepositories(userId);
             if (repositories.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
