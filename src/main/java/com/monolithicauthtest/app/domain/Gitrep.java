@@ -44,6 +44,7 @@ public class Gitrep implements Serializable {
     public enum PlatformType {
         GITHUB,
         GITLAB,
+        BITBUCKET,
     }
 
     @Enumerated(EnumType.STRING)

@@ -11,7 +11,8 @@ export class AuthorizationComponent implements OnInit {
   responseMessage: string = '';
   githubRepositories: any[] = [];
   gitlabRepositories: any[] = [];
-  platform: 'github' | 'gitlab' = 'github';
+  bitbucketRepositories: any[] = [];
+  platform: 'github' | 'gitlab' | 'bitbucket' = 'github';
   urlValue: string = '';
 
   constructor(
@@ -21,6 +22,7 @@ export class AuthorizationComponent implements OnInit {
 
   ngOnInit() {
     this.getGithubRepositories();
+    this.getBitbucketRepositories();
   }
 
   getGithubRepositories() {
@@ -43,7 +45,18 @@ export class AuthorizationComponent implements OnInit {
     });
   }
 
-  saveAndSwitchPlatform(newPlatform: 'github' | 'gitlab') {
+  getBitbucketRepositories() {
+    this.AuthorizationService.getBitbucketRepositories().subscribe({
+      next: repos => {
+        this.bitbucketRepositories = repos;
+      },
+      error: error => {
+        console.error('Component error fetching Bitbucket repositories:', error);
+      },
+    });
+  }
+
+  saveAndSwitchPlatform(newPlatform: 'github' | 'gitlab' | 'bitbucket') {
     this.AuthorizationService.saveClientUrl(this.urlValue, newPlatform).subscribe({
       next: () => {
         console.log('Client URL and platform type saved successfully');
@@ -55,7 +68,8 @@ export class AuthorizationComponent implements OnInit {
 
     this.switchPlatform(newPlatform);
   }
-  switchPlatform(newPlatform: 'github' | 'gitlab') {
+
+  switchPlatform(newPlatform: 'github' | 'gitlab' | 'bitbucket') {
     this.platform = newPlatform;
   }
 }

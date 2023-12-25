@@ -15,6 +15,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -38,6 +40,13 @@ public class AuthorizationService {
 
     @Value("${gitlab.client-secret}")
     private String gitlabClientSecret;
+
+    // Bitbucket
+    @Value("${bitbucket.client-id}")
+    private String bitbucketClientId;
+
+    @Value("${bitbucket.client-secret}")
+    private String bitbucketClientSecret;
 
     public AuthorizationService(
         GitrepRepository gitrepRepository,
@@ -71,8 +80,8 @@ public class AuthorizationService {
 
     public String getGitLabUsername(String accessToken) {
         // Retrieve the Gitrep entity for GitLab
-        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType("1001", Gitrep.PlatformType.GITLAB);
-        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130");
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType("1001", Gitrep.PlatformType.GITLAB); // CHANGE THIS
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130"); // CHANGE THIS
         String uri = baseUrl.endsWith("/") ? baseUrl + "api/v4/user" : baseUrl + "/api/v4/user";
 
         HttpHeaders headers = new HttpHeaders();
@@ -121,6 +130,29 @@ public class AuthorizationService {
         }
     }
 
+    public String getBitbucketUsername(String accessToken) {
+        String uri = "https://api.bitbucket.org/2.0/user";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                uri,
+                HttpMethod.GET,
+                request,
+                new ParameterizedTypeReference<Map<String, Object>>() {}
+            );
+
+            Map<String, Object> responseBody = response.getBody();
+            return responseBody != null ? (String) responseBody.get("username") : null;
+        } catch (Exception e) {
+            log.error("Error while fetching Bitbucket user information", e);
+            return null;
+        }
+    }
+
     public String exchangeCodeForAccessToken(String code) {
         String uri = "https://github.com/login/oauth/access_token";
 
@@ -157,7 +189,7 @@ public class AuthorizationService {
     }
 
     public String exchangeCodeForGitLabAccessToken(String code) {
-        String uri = "http://192.168.100.130/oauth/token";
+        String uri = "http://192.168.100.130/oauth/token"; // CHANGE THIS
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -167,7 +199,7 @@ public class AuthorizationService {
         params.put("client_secret", gitlabClientSecret);
         params.put("code", code);
         params.put("grant_type", "authorization_code");
-        params.put("redirect_uri", "http://localhost:8080/login/oauth2/code/gitlab");
+        params.put("redirect_uri", "http://localhost:8080/login/oauth2/code/gitlab"); // CHANGE THIS
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(params, headers);
 
@@ -191,6 +223,43 @@ public class AuthorizationService {
             log.error("HTTP error during GitLab token exchange: {}", e.getStatusCode());
             return null;
         } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public String exchangeCodeForBitbucketAccessToken(String code) {
+        String uri = "https://bitbucket.org/site/oauth2/access_token";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("client_id", bitbucketClientId);
+        params.add("client_secret", bitbucketClientSecret);
+        params.add("code", code);
+        params.add("grant_type", "authorization_code");
+        params.add("redirect_uri", "http://localhost:8080/login/oauth2/code/bitbucket"); // CHANGE THIS
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+
+        try {
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                uri,
+                HttpMethod.POST,
+                request,
+                new ParameterizedTypeReference<Map<String, Object>>() {}
+            );
+
+            Map<String, Object> responseBody = response.getBody();
+
+            if (responseBody != null && responseBody.containsKey("access_token")) {
+                return (String) responseBody.get("access_token");
+            } else {
+                log.error("Bitbucket access token not found in the response");
+                return null;
+            }
+        } catch (Exception e) {
+            log.error("Error while exchanging code for Bitbucket access token", e);
             return null;
         }
     }
@@ -232,8 +301,8 @@ public class AuthorizationService {
         }
 
         // Retrieve the Gitrep entity for GitLab
-        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType("1001", Gitrep.PlatformType.GITLAB);
-        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130");
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType("1001", Gitrep.PlatformType.GITLAB); // CHANGE THIS
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130"); // CHANGE THIS
         String uri = baseUrl.endsWith("/") ? baseUrl + "api/v4/projects" : baseUrl + "/api/v4/projects";
 
         HttpHeaders headers = new HttpHeaders();
@@ -250,6 +319,48 @@ public class AuthorizationService {
             return response.getBody();
         } catch (Exception e) {
             log.error("Service: Error fetching GitLab repositories", e);
+            return Collections.emptyList();
+        }
+    }
+
+    // Method to fetch repositories from Bitbucket
+    public List<Map<String, Object>> getBitbucketRepositories() {
+        String accessToken = retrieveAccessToken(Gitrep.PlatformType.BITBUCKET);
+        if (accessToken == null) {
+            return Collections.emptyList();
+        }
+
+        // Retrieve the Gitrep entity for Bitbucket
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType("1001", Gitrep.PlatformType.BITBUCKET);
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("https://api.bitbucket.org/2.0/repositories/");
+        String uri = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                uri,
+                HttpMethod.GET,
+                request,
+                new ParameterizedTypeReference<Map<String, Object>>() {}
+            );
+
+            Map<String, Object> responseBody = response.getBody();
+            if (responseBody != null && responseBody.containsKey("values")) {
+                Object valuesObj = responseBody.get("values");
+                if (valuesObj instanceof List<?>) {
+                    List<?> tempList = (List<?>) valuesObj;
+                    if (!tempList.isEmpty() && tempList.get(0) instanceof Map<?, ?>) {
+                        // Safe to cast
+                        return (List<Map<String, Object>>) tempList;
+                    }
+                }
+            }
+            return Collections.emptyList();
+        } catch (Exception e) {
+            log.error("Service: Error fetching Bitbucket repositories", e);
             return Collections.emptyList();
         }
     }
