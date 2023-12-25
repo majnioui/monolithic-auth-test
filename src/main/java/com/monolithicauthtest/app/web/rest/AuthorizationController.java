@@ -45,11 +45,11 @@ public class AuthorizationController {
     public ResponseEntity<Void> saveClientUrl(@RequestBody Map<String, String> request) {
         String clientUrl = request.get("clientUrl");
         String platformType = request.get("platformType");
-        final String clientId = "1001"; // Specific client ID
+        final String clientId = "1001"; // CHANGE THIS
 
         // Check if clientUrl is empty or null, and return if it is
         if (clientUrl == null || clientUrl.trim().isEmpty()) {
-            return ResponseEntity.ok().build(); // or use ResponseEntity.badRequest().build() to indicate a bad request
+            return ResponseEntity.ok().build();
         }
 
         // Check if a Gitrep entity exists with the same clientId and platformType
@@ -88,9 +88,9 @@ public class AuthorizationController {
     @GetMapping("/authorize-gitlab")
     public void initiateGitLabAuthorization(HttpServletResponse response) throws IOException {
         String redirectUrl =
-            "http://192.168.100.130/oauth/authorize?client_id=" +
+            "http://192.168.100.130/oauth/authorize?client_id=" + // CHANGE THIS
             gitlabClientId +
-            "&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/gitlab"; // localhost:8080 to be changed with the real path
+            "&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/gitlab"; // CHANGE THIS
         response.sendRedirect(redirectUrl);
     }
 
@@ -100,7 +100,7 @@ public class AuthorizationController {
         String redirectUrl =
             "https://bitbucket.org/site/oauth2/authorize?client_id=" +
             bitbucketClientId +
-            "&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/bitbucket";
+            "&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/bitbucket"; // CHANGE THIS
         response.sendRedirect(redirectUrl);
     }
 
@@ -117,7 +117,7 @@ public class AuthorizationController {
                 String username = authorizationService.getGitHubUsername(accessToken);
 
                 // Update Gitrep with the new access token, platform type, and username
-                String clientId = "1001"; // Hardcoded client ID for testing only
+                String clientId = "1001"; // CHANGE THIS
                 authorizationService.updateAccessTokenAndUsername(clientId, accessToken, Gitrep.PlatformType.GITHUB, username);
                 log.info("Access token and username updated successfully in Gitrep entity for GitHub");
 
@@ -148,7 +148,7 @@ public class AuthorizationController {
                 // Fetch the GitLab username
                 String username = authorizationService.getGitLabUsername(accessToken);
                 // Update Gitrep with the new access token, platform type, and username
-                String clientId = "1001"; // Example client ID
+                String clientId = "1001"; // CHANGE THIS
                 authorizationService.updateAccessTokenAndUsername(clientId, accessToken, Gitrep.PlatformType.GITLAB, username);
                 log.info("Access token and username updated successfully in Gitrep entity for GitLab");
 
@@ -180,7 +180,7 @@ public class AuthorizationController {
                 String username = authorizationService.getBitbucketUsername(accessToken);
 
                 // Update Gitrep with the new access token, platform type, and username
-                String clientId = "1001"; // Modify as needed
+                String clientId = "1001"; // CHANGE THIS
                 authorizationService.updateAccessTokenAndUsername(clientId, accessToken, Gitrep.PlatformType.BITBUCKET, username);
                 log.info("Access token and username updated successfully in Gitrep entity for Bitbucket");
 

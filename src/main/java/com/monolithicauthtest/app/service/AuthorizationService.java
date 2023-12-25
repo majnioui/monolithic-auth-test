@@ -80,8 +80,8 @@ public class AuthorizationService {
 
     public String getGitLabUsername(String accessToken) {
         // Retrieve the Gitrep entity for GitLab
-        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType("1001", Gitrep.PlatformType.GITLAB);
-        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130");
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType("1001", Gitrep.PlatformType.GITLAB); // CHANGE THIS
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130"); // CHANGE THIS
         String uri = baseUrl.endsWith("/") ? baseUrl + "api/v4/user" : baseUrl + "/api/v4/user";
 
         HttpHeaders headers = new HttpHeaders();
@@ -189,7 +189,7 @@ public class AuthorizationService {
     }
 
     public String exchangeCodeForGitLabAccessToken(String code) {
-        String uri = "http://192.168.100.130/oauth/token";
+        String uri = "http://192.168.100.130/oauth/token"; // CHANGE THIS
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -199,7 +199,7 @@ public class AuthorizationService {
         params.put("client_secret", gitlabClientSecret);
         params.put("code", code);
         params.put("grant_type", "authorization_code");
-        params.put("redirect_uri", "http://localhost:8080/login/oauth2/code/gitlab");
+        params.put("redirect_uri", "http://localhost:8080/login/oauth2/code/gitlab"); // CHANGE THIS
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(params, headers);
 
@@ -238,7 +238,7 @@ public class AuthorizationService {
         params.add("client_secret", bitbucketClientSecret);
         params.add("code", code);
         params.add("grant_type", "authorization_code");
-        params.add("redirect_uri", "http://localhost:8080/login/oauth2/code/bitbucket");
+        params.add("redirect_uri", "http://localhost:8080/login/oauth2/code/bitbucket"); // CHANGE THIS
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
 
@@ -301,8 +301,8 @@ public class AuthorizationService {
         }
 
         // Retrieve the Gitrep entity for GitLab
-        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType("1001", Gitrep.PlatformType.GITLAB);
-        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130");
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType("1001", Gitrep.PlatformType.GITLAB); // CHANGE THIS
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130"); // CHANGE THIS
         String uri = baseUrl.endsWith("/") ? baseUrl + "api/v4/projects" : baseUrl + "/api/v4/projects";
 
         HttpHeaders headers = new HttpHeaders();
