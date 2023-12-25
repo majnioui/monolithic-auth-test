@@ -19,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -56,7 +57,11 @@ public class AuthorizationController {
     }
 
     @PostMapping("/api/save-client-url")
-    public ResponseEntity<Void> saveClientUrl(String clientId, String clientUrl, String platformType) {
+    public ResponseEntity<Void> saveClientUrl(@RequestBody Map<String, String> request) {
+        String clientUrl = request.get("clientUrl");
+        String platformType = request.get("platformType");
+        String currentUserId = getCurrentUserId(); // Get the current user's ID
+
         // Check if clientUrl is empty or null, and return if it is
         if (clientUrl == null || clientUrl.trim().isEmpty()) {
             return ResponseEntity.ok().build();
@@ -64,7 +69,7 @@ public class AuthorizationController {
 
         // Check if a Gitrep entity exists with the same clientId and platformType
         Optional<Gitrep> existingGitrep = gitrepRepository.findByClientidAndPlatformType(
-            clientId,
+            currentUserId,
             Gitrep.PlatformType.valueOf(platformType.toUpperCase())
         );
 
@@ -76,7 +81,7 @@ public class AuthorizationController {
         } else {
             // Create a new entity if it doesn't exist
             gitrep = new Gitrep();
-            gitrep.setClientid(clientId);
+            gitrep.setClientid(currentUserId);
             gitrep.setAccesstoken("XXX"); // Placeholder for access token
             gitrep.setClientUrl(clientUrl);
             gitrep.setPlatformType(Gitrep.PlatformType.valueOf(platformType.toUpperCase()));
