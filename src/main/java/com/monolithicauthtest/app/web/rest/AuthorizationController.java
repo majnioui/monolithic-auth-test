@@ -4,6 +4,7 @@ import com.monolithicauthtest.app.domain.Gitrep;
 import com.monolithicauthtest.app.domain.User;
 import com.monolithicauthtest.app.repository.GitrepRepository;
 import com.monolithicauthtest.app.repository.UserRepository;
+import com.monolithicauthtest.app.security.SecurityUtils;
 import com.monolithicauthtest.app.service.AuthorizationService;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -18,8 +19,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -55,21 +54,17 @@ public class AuthorizationController {
     }
 
     private String getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null) {
-            log.info("Authentication name: {}", authentication.getName());
-            Optional<User> userOpt = userRepository.findOneByLogin(authentication.getName());
-            if (userOpt.isPresent()) {
-                String clientId = userOpt.map(User::getId).map(String::valueOf).orElse(null);
-                log.info("Current User ID: {}", clientId);
-                return clientId;
-            } else {
-                log.warn("No user found with login: {}", authentication.getName());
-            }
-        } else {
-            log.warn("No authentication found in Security Context");
-        }
-        return null;
+        return SecurityUtils
+            .getCurrentUserLogin()
+            .flatMap(userRepository::findOneByLogin)
+            .map(User::getId)
+            .map(String::valueOf)
+            .orElse(null);
+    }
+
+    private String getUserIdByLogin(String login) {
+        Optional<User> userOpt = userRepository.findOneByLogin(login);
+        return userOpt.map(User::getId).map(String::valueOf).orElse(null);
     }
 
     @PostMapping("/api/save-client-url")
@@ -118,21 +113,31 @@ public class AuthorizationController {
 
     // GitLab Authorization
     @GetMapping("/authorize-gitlab")
-    public void initiateGitLabAuthorization(HttpServletResponse response) throws IOException {
+    public void initiateGitLabAuthorization(@RequestParam(required = false) String userLogin, HttpServletResponse response)
+        throws IOException {
         String redirectUrl =
-            "http://192.168.100.130/oauth/authorize?client_id=" + // CHANGE THIS
+            "http://192.168.100.130/oauth/authorize?client_id=" +
             gitlabClientId +
-            "&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/gitlab"; // CHANGE THIS
+            "&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/gitlab";
+
+        String state = userLogin != null ? URLEncoder.encode(userLogin, StandardCharsets.UTF_8) : "default";
+        redirectUrl += "&state=" + state;
+
         response.sendRedirect(redirectUrl);
     }
 
     // Bitbucket Authorization
     @GetMapping("/authorize-bitbucket")
-    public void initiateBitbucketAuthorization(HttpServletResponse response) throws IOException {
+    public void initiateBitbucketAuthorization(@RequestParam(required = false) String userLogin, HttpServletResponse response)
+        throws IOException {
         String redirectUrl =
             "https://bitbucket.org/site/oauth2/authorize?client_id=" +
             bitbucketClientId +
-            "&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/bitbucket"; // CHANGE THIS
+            "&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/bitbucket";
+
+        String state = userLogin != null ? URLEncoder.encode(userLogin, StandardCharsets.UTF_8) : "default";
+        redirectUrl += "&state=" + state;
+
         response.sendRedirect(redirectUrl);
     }
 
@@ -168,23 +173,22 @@ public class AuthorizationController {
         }
     }
 
-    private String getUserIdByLogin(String login) {
-        Optional<User> userOpt = userRepository.findOneByLogin(login);
-        return userOpt.map(User::getId).map(String::valueOf).orElse(null);
-    }
-
     // GitLab OAuth Callback
     @GetMapping("/login/oauth2/code/gitlab")
-    public void handleGitLabRedirect(@RequestParam("code") String code, HttpServletResponse response) {
+    public void handleGitLabRedirect(@RequestParam("code") String code, @RequestParam("state") String state, HttpServletResponse response) {
         log.info("GitLab callback triggered with code: {}", code);
+        // Decode the state parameter to get the user login
+        String userLogin = URLDecoder.decode(state, StandardCharsets.UTF_8);
+
         try {
             String accessToken = authorizationService.exchangeCodeForGitLabAccessToken(code);
             log.debug("Received GitLab access token: {}", accessToken);
 
             if (accessToken != null) {
-                String clientId = getCurrentUserId();
-                String username = authorizationService.getGitLabUsername(accessToken, clientId);
-                authorizationService.updateAccessTokenAndUsername(clientId, accessToken, Gitrep.PlatformType.GITLAB, username);
+                // Use userLogin to get the user ID
+                String userId = getUserIdByLogin(userLogin);
+                String username = authorizationService.getGitLabUsername(accessToken, userId);
+                authorizationService.updateAccessTokenAndUsername(userId, accessToken, Gitrep.PlatformType.GITLAB, username);
                 log.info("Access token and username updated successfully in Gitrep entity for GitLab");
                 response.sendRedirect("/authorization");
             } else {
@@ -195,38 +199,44 @@ public class AuthorizationController {
             log.error("Error during GitLab OAuth process", e);
             try {
                 response.sendRedirect("/error?message=Error during GitLab OAuth process");
-            } catch (IOException ex) {
-                log.error("Error during redirection to the error page", ex);
+            } catch (IOException e1) {
+                e1.printStackTrace();
             }
         }
     }
 
     // Bitbucket OAuth Callback
     @GetMapping("/login/oauth2/code/bitbucket")
-    public void handleBitbucketRedirect(@RequestParam("code") String code, HttpServletResponse response) {
+    public void handleBitbucketRedirect(
+        @RequestParam("code") String code,
+        @RequestParam("state") String state,
+        HttpServletResponse response
+    ) {
         log.info("Bitbucket callback triggered with code: {}", code);
+        // Decode the state parameter to get the user login
+        String userLogin = URLDecoder.decode(state, StandardCharsets.UTF_8);
+
         try {
             String accessToken = authorizationService.exchangeCodeForBitbucketAccessToken(code);
             log.debug("Received Bitbucket access token: {}", accessToken);
 
             if (accessToken != null) {
-                String clientId = getCurrentUserId();
-                String username = authorizationService.getBitbucketUsername(accessToken, clientId);
-                authorizationService.updateAccessTokenAndUsername(clientId, accessToken, Gitrep.PlatformType.BITBUCKET, username);
+                // Use userLogin to get the user ID
+                String userId = getUserIdByLogin(userLogin);
+                String username = authorizationService.getBitbucketUsername(accessToken, userId);
+                authorizationService.updateAccessTokenAndUsername(userId, accessToken, Gitrep.PlatformType.BITBUCKET, username);
                 log.info("Access token and username updated successfully in Gitrep entity for Bitbucket");
                 response.sendRedirect("/authorization");
             } else {
                 log.error("Bitbucket access token was null. Not saved in Gitrep entity.");
                 response.sendRedirect("/error?message=Failed to obtain Bitbucket access token");
             }
-        } catch (IOException ex) {
-            log.error("IOException during Bitbucket OAuth process", ex);
         } catch (Exception e) {
             log.error("Error during Bitbucket OAuth process", e);
             try {
                 response.sendRedirect("/error?message=Error during Bitbucket OAuth process");
-            } catch (IOException ex) {
-                log.error("IOException during redirection to the error page", ex);
+            } catch (IOException e1) {
+                e1.printStackTrace();
             }
         }
     }
