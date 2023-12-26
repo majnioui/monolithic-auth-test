@@ -1,10 +1,16 @@
 package com.monolithicauthtest.app.web.rest;
 
 import com.monolithicauthtest.app.domain.Gitrep;
+import com.monolithicauthtest.app.domain.User;
 import com.monolithicauthtest.app.repository.GitrepRepository;
+import com.monolithicauthtest.app.repository.UserRepository;
+import com.monolithicauthtest.app.security.SecurityUtils;
 import com.monolithicauthtest.app.service.AuthorizationService;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,19 +39,39 @@ public class AuthorizationController {
 
     private final AuthorizationService authorizationService;
     private final GitrepRepository gitrepRepository;
+    private final UserRepository userRepository;
 
     private static final Logger log = LoggerFactory.getLogger(AuthorizationController.class);
 
-    public AuthorizationController(AuthorizationService authorizationService, GitrepRepository gitrepRepository) {
+    public AuthorizationController(
+        AuthorizationService authorizationService,
+        GitrepRepository gitrepRepository,
+        UserRepository userRepository
+    ) {
         this.authorizationService = authorizationService;
         this.gitrepRepository = gitrepRepository;
+        this.userRepository = userRepository;
+    }
+
+    private String getCurrentUserId() {
+        return SecurityUtils
+            .getCurrentUserLogin()
+            .flatMap(userRepository::findOneByLogin)
+            .map(User::getId)
+            .map(String::valueOf)
+            .orElse(null);
+    }
+
+    private String getUserIdByLogin(String login) {
+        Optional<User> userOpt = userRepository.findOneByLogin(login);
+        return userOpt.map(User::getId).map(String::valueOf).orElse(null);
     }
 
     @PostMapping("/api/save-client-url")
     public ResponseEntity<Void> saveClientUrl(@RequestBody Map<String, String> request) {
         String clientUrl = request.get("clientUrl");
         String platformType = request.get("platformType");
-        final String clientId = "1001"; // CHANGE THIS
+        String clientId = getCurrentUserId(); // Get the current user's ID
 
         // Check if clientUrl is empty or null, and return if it is
         if (clientUrl == null || clientUrl.trim().isEmpty()) {
@@ -67,7 +93,7 @@ public class AuthorizationController {
             // Create a new entity if it doesn't exist
             gitrep = new Gitrep();
             gitrep.setClientid(clientId);
-            gitrep.setAccesstoken("XXX"); // Set the access token
+            gitrep.setAccesstoken("XXX"); // Just a tweak we temporary fill it with xxx it will be updated when authorizing
             gitrep.setClientUrl(clientUrl);
             gitrep.setPlatformType(Gitrep.PlatformType.valueOf(platformType.toUpperCase()));
         }
@@ -78,49 +104,60 @@ public class AuthorizationController {
 
     // Github Authorization
     @GetMapping("/authorize-github")
-    public void initiateAuthorization(HttpServletResponse response) throws IOException {
+    public void initiateAuthorization(@RequestParam(required = false) String userLogin, HttpServletResponse response) throws IOException {
         String scopes = "read:user,repo";
-        String redirectUrl = "https://github.com/login/oauth/authorize?client_id=" + clientId + "&scope=" + scopes;
+        String state = userLogin != null ? URLEncoder.encode(userLogin, StandardCharsets.UTF_8) : "default";
+        String redirectUrl = "https://github.com/login/oauth/authorize?client_id=" + clientId + "&scope=" + scopes + "&state=" + state;
         response.sendRedirect(redirectUrl);
     }
 
     // GitLab Authorization
     @GetMapping("/authorize-gitlab")
-    public void initiateGitLabAuthorization(HttpServletResponse response) throws IOException {
+    public void initiateGitLabAuthorization(@RequestParam(required = false) String userLogin, HttpServletResponse response)
+        throws IOException {
         String redirectUrl =
-            "http://192.168.100.130/oauth/authorize?client_id=" + // CHANGE THIS
+            "http://192.168.100.130/oauth/authorize?client_id=" + // CHANGE THIS TO USE URL USED TO HOST OUR OAUTH APP
             gitlabClientId +
             "&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/gitlab"; // CHANGE THIS
+
+        String state = userLogin != null ? URLEncoder.encode(userLogin, StandardCharsets.UTF_8) : "default";
+        redirectUrl += "&state=" + state;
+
         response.sendRedirect(redirectUrl);
     }
 
     // Bitbucket Authorization
     @GetMapping("/authorize-bitbucket")
-    public void initiateBitbucketAuthorization(HttpServletResponse response) throws IOException {
+    public void initiateBitbucketAuthorization(@RequestParam(required = false) String userLogin, HttpServletResponse response)
+        throws IOException {
         String redirectUrl =
             "https://bitbucket.org/site/oauth2/authorize?client_id=" +
             bitbucketClientId +
             "&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/bitbucket"; // CHANGE THIS
+
+        String state = userLogin != null ? URLEncoder.encode(userLogin, StandardCharsets.UTF_8) : "default";
+        redirectUrl += "&state=" + state;
+
         response.sendRedirect(redirectUrl);
     }
 
     // Github OAuth Callback
     @GetMapping("/login/oauth2/code/github")
-    public void handleGitHubRedirect(@RequestParam("code") String code, HttpServletResponse response) {
+    public void handleGitHubRedirect(@RequestParam("code") String code, @RequestParam("state") String state, HttpServletResponse response) {
         log.info("GitHub callback triggered with code: {}", code);
+        // Decode the state parameter to get the user login
+        String userLogin = URLDecoder.decode(state, StandardCharsets.UTF_8);
+
         try {
             String accessToken = authorizationService.exchangeCodeForAccessToken(code);
             log.debug("Received access token: {}", accessToken);
 
             if (accessToken != null) {
-                // Fetch the GitHub username
-                String username = authorizationService.getGitHubUsername(accessToken);
-
-                // Update Gitrep with the new access token, platform type, and username
-                String clientId = "1001"; // CHANGE THIS
-                authorizationService.updateAccessTokenAndUsername(clientId, accessToken, Gitrep.PlatformType.GITHUB, username);
+                // Use userLogin to get the user ID
+                String userId = getUserIdByLogin(userLogin);
+                String username = authorizationService.getGitHubUsername(accessToken, userId);
+                authorizationService.updateAccessTokenAndUsername(userId, accessToken, Gitrep.PlatformType.GITHUB, username);
                 log.info("Access token and username updated successfully in Gitrep entity for GitHub");
-
                 response.sendRedirect("/authorization");
             } else {
                 log.error("Access token was null. Not saved in Gitrep entity.");
@@ -130,28 +167,29 @@ public class AuthorizationController {
             log.error("Error during GitHub OAuth process", e);
             try {
                 response.sendRedirect("/error?message=Error during GitHub OAuth process");
-            } catch (IOException ex) {
-                log.error("Error during redirection to the error page", ex);
+            } catch (IOException e1) {
+                e1.printStackTrace();
             }
         }
     }
 
     // GitLab OAuth Callback
     @GetMapping("/login/oauth2/code/gitlab")
-    public void handleGitLabRedirect(@RequestParam("code") String code, HttpServletResponse response) {
+    public void handleGitLabRedirect(@RequestParam("code") String code, @RequestParam("state") String state, HttpServletResponse response) {
         log.info("GitLab callback triggered with code: {}", code);
+        // Decode the state parameter to get the user login
+        String userLogin = URLDecoder.decode(state, StandardCharsets.UTF_8);
+
         try {
             String accessToken = authorizationService.exchangeCodeForGitLabAccessToken(code);
             log.debug("Received GitLab access token: {}", accessToken);
 
             if (accessToken != null) {
-                // Fetch the GitLab username
-                String username = authorizationService.getGitLabUsername(accessToken);
-                // Update Gitrep with the new access token, platform type, and username
-                String clientId = "1001"; // CHANGE THIS
-                authorizationService.updateAccessTokenAndUsername(clientId, accessToken, Gitrep.PlatformType.GITLAB, username);
+                // Use userLogin to get the user ID
+                String userId = getUserIdByLogin(userLogin);
+                String username = authorizationService.getGitLabUsername(accessToken, userId);
+                authorizationService.updateAccessTokenAndUsername(userId, accessToken, Gitrep.PlatformType.GITLAB, username);
                 log.info("Access token and username updated successfully in Gitrep entity for GitLab");
-
                 response.sendRedirect("/authorization");
             } else {
                 log.error("GitLab access token was null. Not saved in Gitrep entity.");
@@ -161,29 +199,33 @@ public class AuthorizationController {
             log.error("Error during GitLab OAuth process", e);
             try {
                 response.sendRedirect("/error?message=Error during GitLab OAuth process");
-            } catch (IOException ex) {
-                log.error("Error during redirection to the error page", ex);
+            } catch (IOException e1) {
+                e1.printStackTrace();
             }
         }
     }
 
     // Bitbucket OAuth Callback
     @GetMapping("/login/oauth2/code/bitbucket")
-    public void handleBitbucketRedirect(@RequestParam("code") String code, HttpServletResponse response) {
+    public void handleBitbucketRedirect(
+        @RequestParam("code") String code,
+        @RequestParam("state") String state,
+        HttpServletResponse response
+    ) {
         log.info("Bitbucket callback triggered with code: {}", code);
+        // Decode the state parameter to get the user login
+        String userLogin = URLDecoder.decode(state, StandardCharsets.UTF_8);
+
         try {
             String accessToken = authorizationService.exchangeCodeForBitbucketAccessToken(code);
             log.debug("Received Bitbucket access token: {}", accessToken);
 
             if (accessToken != null) {
-                // Fetch the Bitbucket username
-                String username = authorizationService.getBitbucketUsername(accessToken);
-
-                // Update Gitrep with the new access token, platform type, and username
-                String clientId = "1001"; // CHANGE THIS
-                authorizationService.updateAccessTokenAndUsername(clientId, accessToken, Gitrep.PlatformType.BITBUCKET, username);
+                // Use userLogin to get the user ID
+                String userId = getUserIdByLogin(userLogin);
+                String username = authorizationService.getBitbucketUsername(accessToken, userId);
+                authorizationService.updateAccessTokenAndUsername(userId, accessToken, Gitrep.PlatformType.BITBUCKET, username);
                 log.info("Access token and username updated successfully in Gitrep entity for Bitbucket");
-
                 response.sendRedirect("/authorization");
             } else {
                 log.error("Bitbucket access token was null. Not saved in Gitrep entity.");
@@ -193,15 +235,16 @@ public class AuthorizationController {
             log.error("Error during Bitbucket OAuth process", e);
             try {
                 response.sendRedirect("/error?message=Error during Bitbucket OAuth process");
-            } catch (IOException ex) {
-                log.error("Error during redirection to the error page", ex);
+            } catch (IOException e1) {
+                e1.printStackTrace();
             }
         }
     }
 
     @GetMapping("/github/repositories")
     public ResponseEntity<List<Map<String, Object>>> getGithubRepositories() {
-        List<Map<String, Object>> repositories = authorizationService.getRepositories();
+        String clientId = getCurrentUserId();
+        List<Map<String, Object>> repositories = authorizationService.getRepositories(clientId);
         if (repositories.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -210,7 +253,8 @@ public class AuthorizationController {
 
     @GetMapping("/gitlab/repositories")
     public ResponseEntity<List<Map<String, Object>>> getGitLabRepositories() {
-        List<Map<String, Object>> repositories = authorizationService.getGitLabRepositories();
+        String clientId = getCurrentUserId();
+        List<Map<String, Object>> repositories = authorizationService.getGitLabRepositories(clientId);
         if (repositories.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -220,7 +264,8 @@ public class AuthorizationController {
     @GetMapping("/bitbucket/repositories")
     public ResponseEntity<?> getBitbucketRepositories() {
         try {
-            List<Map<String, Object>> repositories = authorizationService.getBitbucketRepositories();
+            String clientId = getCurrentUserId();
+            List<Map<String, Object>> repositories = authorizationService.getBitbucketRepositories(clientId);
             if (repositories.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }

@@ -61,7 +61,6 @@ public class AuthorizationService {
 
     @Transactional
     public void updateAccessTokenAndUsername(String clientId, String accessToken, PlatformType platformType, String username) {
-        // Similar to updateAccessToken but also sets the username
         Optional<Gitrep> existingGitrep = gitrepRepository.findByClientidAndPlatformType(clientId, platformType);
         Gitrep gitrep;
         if (existingGitrep.isPresent()) {
@@ -75,13 +74,13 @@ public class AuthorizationService {
             gitrep.setUsername(username);
             gitrep.setPlatformType(platformType);
         }
+        log.info("Updating Gitrep for clientId: {}, platformType: {}", clientId, platformType);
         gitrepRepository.save(gitrep);
     }
 
-    public String getGitLabUsername(String accessToken) {
-        // Retrieve the Gitrep entity for GitLab
-        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType("1001", Gitrep.PlatformType.GITLAB); // CHANGE THIS
-        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130"); // CHANGE THIS
+    public String getGitLabUsername(String accessToken, String clientId) {
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType(clientId, Gitrep.PlatformType.GITLAB);
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130"); // CHANGE THIS to the default URL of our OAUTH APP
         String uri = baseUrl.endsWith("/") ? baseUrl + "api/v4/user" : baseUrl + "/api/v4/user";
 
         HttpHeaders headers = new HttpHeaders();
@@ -104,9 +103,8 @@ public class AuthorizationService {
         }
     }
 
-    public String getGitHubUsername(String accessToken) {
-        // Retrieve the Gitrep entity for GitHub
-        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType("1001", Gitrep.PlatformType.GITHUB);
+    public String getGitHubUsername(String accessToken, String clientId) {
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType(clientId, Gitrep.PlatformType.GITHUB);
         String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("https://api.github.com");
         String uri = baseUrl.endsWith("/") ? baseUrl + "user" : baseUrl + "/user";
 
@@ -130,7 +128,7 @@ public class AuthorizationService {
         }
     }
 
-    public String getBitbucketUsername(String accessToken) {
+    public String getBitbucketUsername(String accessToken, String clientId) {
         String uri = "https://api.bitbucket.org/2.0/user";
 
         HttpHeaders headers = new HttpHeaders();
@@ -264,14 +262,13 @@ public class AuthorizationService {
         }
     }
 
-    public List<Map<String, Object>> getRepositories() {
-        String accessToken = retrieveAccessToken(Gitrep.PlatformType.GITHUB);
+    public List<Map<String, Object>> getRepositories(String clientId) {
+        String accessToken = retrieveAccessToken(Gitrep.PlatformType.GITHUB, clientId);
         if (accessToken == null) {
             return Collections.emptyList();
         }
 
-        // Retrieve the Gitrep entity for GitHub
-        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType("1001", Gitrep.PlatformType.GITHUB);
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType(clientId, Gitrep.PlatformType.GITHUB);
         String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("https://api.github.com");
         String uri = baseUrl.endsWith("/") ? baseUrl + "user/repos" : baseUrl + "/user/repos";
 
@@ -288,21 +285,20 @@ public class AuthorizationService {
             );
             return response.getBody();
         } catch (Exception e) {
-            log.error("Service: Error fetching GitHub repositories ", e);
+            log.error("Service: Error fetching GitHub repositories", e);
             return Collections.emptyList();
         }
     }
 
     // Method to fetch repositories from GitLab
-    public List<Map<String, Object>> getGitLabRepositories() {
-        String accessToken = retrieveAccessToken(Gitrep.PlatformType.GITLAB);
+    public List<Map<String, Object>> getGitLabRepositories(String clientId) {
+        String accessToken = retrieveAccessToken(Gitrep.PlatformType.GITLAB, clientId);
         if (accessToken == null) {
             return Collections.emptyList();
         }
 
-        // Retrieve the Gitrep entity for GitLab
-        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType("1001", Gitrep.PlatformType.GITLAB); // CHANGE THIS
-        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130"); // CHANGE THIS
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType(clientId, Gitrep.PlatformType.GITLAB);
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130"); // CHANGE THIS to the default URL of our OAUTH APP
         String uri = baseUrl.endsWith("/") ? baseUrl + "api/v4/projects" : baseUrl + "/api/v4/projects";
 
         HttpHeaders headers = new HttpHeaders();
@@ -324,14 +320,13 @@ public class AuthorizationService {
     }
 
     // Method to fetch repositories from Bitbucket
-    public List<Map<String, Object>> getBitbucketRepositories() {
-        String accessToken = retrieveAccessToken(Gitrep.PlatformType.BITBUCKET);
+    public List<Map<String, Object>> getBitbucketRepositories(String clientId) {
+        String accessToken = retrieveAccessToken(Gitrep.PlatformType.BITBUCKET, clientId);
         if (accessToken == null) {
             return Collections.emptyList();
         }
 
-        // Retrieve the Gitrep entity for Bitbucket
-        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType("1001", Gitrep.PlatformType.BITBUCKET);
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType(clientId, Gitrep.PlatformType.BITBUCKET);
         String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("https://api.bitbucket.org/2.0/repositories/");
         String uri = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
 
@@ -365,8 +360,8 @@ public class AuthorizationService {
         }
     }
 
-    public String retrieveAccessToken(PlatformType platformType) {
-        Optional<Gitrep> latestGitrep = gitrepRepository.findFirstByPlatformTypeOrderByCreatedAtDesc(platformType);
+    public String retrieveAccessToken(PlatformType platformType, String clientId) {
+        Optional<Gitrep> latestGitrep = gitrepRepository.findByClientidAndPlatformType(clientId, platformType);
         return latestGitrep.map(Gitrep::getAccesstoken).orElse(null);
     }
 }
