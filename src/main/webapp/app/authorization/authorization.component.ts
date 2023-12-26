@@ -1,6 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
 import { AccountService } from 'app/core/auth/account.service';
 import { AuthorizationService } from '../services/authorization.service';
 import { Account } from 'app/core/auth/account.model';
@@ -18,19 +16,28 @@ export class AuthorizationComponent implements OnInit {
   platform: 'github' | 'gitlab' | 'bitbucket' = 'github';
   urlValue: string = '';
   account: Account | null = null;
+  userLogin: string | null = null;
 
   constructor(
-    private http: HttpClient,
-    private router: Router,
     private accountService: AccountService,
     private AuthorizationService: AuthorizationService,
   ) {}
 
   ngOnInit() {
-    this.accountService.getAuthenticationState().subscribe(account => (this.account = account));
+    this.accountService.getAuthenticationState().subscribe(account => {
+      this.account = account;
+      this.userLogin = account?.login || null;
+      this.getGithubRepositories();
+      this.getBitbucketRepositories();
+    });
+  }
 
-    this.getGithubRepositories();
-    this.getBitbucketRepositories();
+  authorizePlatform(platform: string) {
+    if (this.userLogin) {
+      window.location.href = `/authorize-${platform}?userLogin=${this.userLogin}`;
+    } else {
+      console.error('User login is not available for authorization');
+    }
   }
 
   getGithubRepositories() {
@@ -79,5 +86,18 @@ export class AuthorizationComponent implements OnInit {
 
   switchPlatform(newPlatform: 'github' | 'gitlab' | 'bitbucket') {
     this.platform = newPlatform;
+  }
+
+  noRepositoriesFor(platform: string): boolean {
+    switch (platform) {
+      case 'github':
+        return this.githubRepositories.length === 0;
+      case 'gitlab':
+        return this.gitlabRepositories.length === 0;
+      case 'bitbucket':
+        return this.bitbucketRepositories.length === 0;
+      default:
+        return false;
+    }
   }
 }

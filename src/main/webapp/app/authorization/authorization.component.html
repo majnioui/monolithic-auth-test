@@ -13,16 +13,7 @@
     </div>
 
     <!-- Show "Authorize" if no repositories are available for the current platform -->
-    <a
-      *ngIf="
-        (platform === 'github' && githubRepositories.length === 0) ||
-        (platform === 'gitlab' && gitlabRepositories.length === 0) ||
-        (platform === 'bitbucket' && bitbucketRepositories.length === 0)
-      "
-      [href]="'/authorize-' + platform"
-      class="btn btn-primary mt-3"
-      >Authorize</a
-    >
+    <button *ngIf="noRepositoriesFor(platform)" (click)="authorizePlatform(platform)" class="btn btn-primary mt-3">Authorize</button>
 
     <!-- GitHub Repository List -->
     <select *ngIf="githubRepositories.length > 0 && platform === 'github'" class="form-select mt-3">

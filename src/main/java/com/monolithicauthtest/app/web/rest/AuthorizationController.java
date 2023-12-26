@@ -7,6 +7,9 @@ import com.monolithicauthtest.app.repository.UserRepository;
 import com.monolithicauthtest.app.service.AuthorizationService;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -106,9 +109,10 @@ public class AuthorizationController {
 
     // Github Authorization
     @GetMapping("/authorize-github")
-    public void initiateAuthorization(HttpServletResponse response) throws IOException {
+    public void initiateAuthorization(@RequestParam(required = false) String userLogin, HttpServletResponse response) throws IOException {
         String scopes = "read:user,repo";
-        String redirectUrl = "https://github.com/login/oauth/authorize?client_id=" + clientId + "&scope=" + scopes;
+        String state = userLogin != null ? URLEncoder.encode(userLogin, StandardCharsets.UTF_8) : "default";
+        String redirectUrl = "https://github.com/login/oauth/authorize?client_id=" + clientId + "&scope=" + scopes + "&state=" + state;
         response.sendRedirect(redirectUrl);
     }
 
@@ -134,16 +138,20 @@ public class AuthorizationController {
 
     // Github OAuth Callback
     @GetMapping("/login/oauth2/code/github")
-    public void handleGitHubRedirect(@RequestParam("code") String code, HttpServletResponse response) {
+    public void handleGitHubRedirect(@RequestParam("code") String code, @RequestParam("state") String state, HttpServletResponse response) {
         log.info("GitHub callback triggered with code: {}", code);
+        // Decode the state parameter to get the user login
+        String userLogin = URLDecoder.decode(state, StandardCharsets.UTF_8);
+
         try {
             String accessToken = authorizationService.exchangeCodeForAccessToken(code);
             log.debug("Received access token: {}", accessToken);
 
             if (accessToken != null) {
-                String clientId = getCurrentUserId();
-                String username = authorizationService.getGitHubUsername(accessToken, clientId);
-                authorizationService.updateAccessTokenAndUsername(clientId, accessToken, Gitrep.PlatformType.GITHUB, username);
+                // Use userLogin to get the user ID
+                String userId = getUserIdByLogin(userLogin);
+                String username = authorizationService.getGitHubUsername(accessToken, userId);
+                authorizationService.updateAccessTokenAndUsername(userId, accessToken, Gitrep.PlatformType.GITHUB, username);
                 log.info("Access token and username updated successfully in Gitrep entity for GitHub");
                 response.sendRedirect("/authorization");
             } else {
@@ -154,10 +162,15 @@ public class AuthorizationController {
             log.error("Error during GitHub OAuth process", e);
             try {
                 response.sendRedirect("/error?message=Error during GitHub OAuth process");
-            } catch (IOException ex) {
-                log.error("Error during redirection to the error page", ex);
+            } catch (IOException e1) {
+                e1.printStackTrace();
             }
         }
+    }
+
+    private String getUserIdByLogin(String login) {
+        Optional<User> userOpt = userRepository.findOneByLogin(login);
+        return userOpt.map(User::getId).map(String::valueOf).orElse(null);
     }
 
     // GitLab OAuth Callback
