@@ -53,6 +53,7 @@ public class AuthorizationController {
         this.userRepository = userRepository;
     }
 
+    // Getting the current logged in user ID directly.
     private String getCurrentUserId() {
         return SecurityUtils
             .getCurrentUserLogin()
@@ -62,16 +63,18 @@ public class AuthorizationController {
             .orElse(null);
     }
 
+    // Getting the current logged using the param as the above sometimes was returing null bcz of the redirects happening in the Aouth proccess.
     private String getUserIdByLogin(String login) {
         Optional<User> userOpt = userRepository.findOneByLogin(login);
         return userOpt.map(User::getId).map(String::valueOf).orElse(null);
     }
 
+    // Used to save client lab URL in case they use one deffirent than the defaults
     @PostMapping("/api/save-client-url")
     public ResponseEntity<Void> saveClientUrl(@RequestBody Map<String, String> request) {
         String clientUrl = request.get("clientUrl");
         String platformType = request.get("platformType");
-        String clientId = getCurrentUserId(); // Get the current user's ID
+        String clientId = getCurrentUserId();
 
         // Check if clientUrl is empty or null, and return if it is
         if (clientUrl == null || clientUrl.trim().isEmpty()) {
@@ -133,7 +136,7 @@ public class AuthorizationController {
         String redirectUrl =
             "https://bitbucket.org/site/oauth2/authorize?client_id=" +
             bitbucketClientId +
-            "&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/bitbucket"; // CHANGE THIS
+            "&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/bitbucket"; // CHANGE THIS ex: can be rkube.io or whatever our link will be.
 
         String state = userLogin != null ? URLEncoder.encode(userLogin, StandardCharsets.UTF_8) : "default";
         redirectUrl += "&state=" + state;
@@ -153,7 +156,7 @@ public class AuthorizationController {
             log.debug("Received access token: {}", accessToken);
 
             if (accessToken != null) {
-                // Use userLogin to get the user ID
+                // Use userLogin to get the user ID to be saved along with other data.
                 String userId = getUserIdByLogin(userLogin);
                 String username = authorizationService.getGitHubUsername(accessToken, userId);
                 authorizationService.updateAccessTokenAndUsername(userId, accessToken, Gitrep.PlatformType.GITHUB, username);
