@@ -80,7 +80,7 @@ public class AuthorizationService {
 
     public String getGitLabUsername(String accessToken, String clientId) {
         Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType(clientId, Gitrep.PlatformType.GITLAB);
-        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130");
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130"); // CHANGE THIS to the default URL of our OAUTH APP
         String uri = baseUrl.endsWith("/") ? baseUrl + "api/v4/user" : baseUrl + "/api/v4/user";
 
         HttpHeaders headers = new HttpHeaders();
@@ -298,7 +298,7 @@ public class AuthorizationService {
         }
 
         Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType(clientId, Gitrep.PlatformType.GITLAB);
-        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130");
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130"); // CHANGE THIS to the default URL of our OAUTH APP
         String uri = baseUrl.endsWith("/") ? baseUrl + "api/v4/projects" : baseUrl + "/api/v4/projects";
 
         HttpHeaders headers = new HttpHeaders();

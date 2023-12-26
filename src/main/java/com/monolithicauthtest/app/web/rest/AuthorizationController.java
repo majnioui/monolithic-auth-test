@@ -116,9 +116,9 @@ public class AuthorizationController {
     public void initiateGitLabAuthorization(@RequestParam(required = false) String userLogin, HttpServletResponse response)
         throws IOException {
         String redirectUrl =
-            "http://192.168.100.130/oauth/authorize?client_id=" +
+            "http://192.168.100.130/oauth/authorize?client_id=" + // CHANGE THIS TO USE URL USED TO HOST OUR OAUTH APP
             gitlabClientId +
-            "&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/gitlab";
+            "&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/gitlab"; // CHANGE THIS
 
         String state = userLogin != null ? URLEncoder.encode(userLogin, StandardCharsets.UTF_8) : "default";
         redirectUrl += "&state=" + state;
@@ -133,7 +133,7 @@ public class AuthorizationController {
         String redirectUrl =
             "https://bitbucket.org/site/oauth2/authorize?client_id=" +
             bitbucketClientId +
-            "&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/bitbucket";
+            "&response_type=code&redirect_uri=http://localhost:8080/login/oauth2/code/bitbucket"; // CHANGE THIS
 
         String state = userLogin != null ? URLEncoder.encode(userLogin, StandardCharsets.UTF_8) : "default";
         redirectUrl += "&state=" + state;
@@ -243,7 +243,7 @@ public class AuthorizationController {
 
     @GetMapping("/github/repositories")
     public ResponseEntity<List<Map<String, Object>>> getGithubRepositories() {
-        String clientId = getCurrentUserId(); // Get current user's ID
+        String clientId = getCurrentUserId();
         List<Map<String, Object>> repositories = authorizationService.getRepositories(clientId);
         if (repositories.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -253,7 +253,7 @@ public class AuthorizationController {
 
     @GetMapping("/gitlab/repositories")
     public ResponseEntity<List<Map<String, Object>>> getGitLabRepositories() {
-        String clientId = getCurrentUserId(); // Get current user's ID
+        String clientId = getCurrentUserId();
         List<Map<String, Object>> repositories = authorizationService.getGitLabRepositories(clientId);
         if (repositories.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -264,7 +264,7 @@ public class AuthorizationController {
     @GetMapping("/bitbucket/repositories")
     public ResponseEntity<?> getBitbucketRepositories() {
         try {
-            String clientId = getCurrentUserId(); // Get current user's ID
+            String clientId = getCurrentUserId();
             List<Map<String, Object>> repositories = authorizationService.getBitbucketRepositories(clientId);
             if (repositories.isEmpty()) {
                 return ResponseEntity.notFound().build();
