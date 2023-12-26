@@ -27,21 +27,21 @@ public class AuthorizationService {
     private final RestTemplate restTemplate;
     private final GitrepRepository gitrepRepository;
 
-    // Github
+    // Github ENVs from application.yml file
     @Value("${github.client-id}")
     private String clientId;
 
     @Value("${github.client-secret}")
     private String clientSecret;
 
-    // Gitlab
+    // Gitlab ENVs from application.yml file
     @Value("${gitlab.client-id}")
     private String gitlabClientId;
 
     @Value("${gitlab.client-secret}")
     private String gitlabClientSecret;
 
-    // Bitbucket
+    // Bitbucket ENVs from application.yml file
     @Value("${bitbucket.client-id}")
     private String bitbucketClientId;
 
@@ -59,6 +59,7 @@ public class AuthorizationService {
         this.gitrepRepository = gitrepRepository;
     }
 
+    // Save username in our end. to be used later
     @Transactional
     public void updateAccessTokenAndUsername(String clientId, String accessToken, PlatformType platformType, String username) {
         Optional<Gitrep> existingGitrep = gitrepRepository.findByClientidAndPlatformType(clientId, platformType);
@@ -78,6 +79,7 @@ public class AuthorizationService {
         gitrepRepository.save(gitrep);
     }
 
+    // Method to fetch Gitlab username
     public String getGitLabUsername(String accessToken, String clientId) {
         Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType(clientId, Gitrep.PlatformType.GITLAB);
         String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130"); // CHANGE THIS to the default URL of our OAUTH APP
@@ -103,6 +105,7 @@ public class AuthorizationService {
         }
     }
 
+    // Method to fetch Github username
     public String getGitHubUsername(String accessToken, String clientId) {
         Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType(clientId, Gitrep.PlatformType.GITHUB);
         String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("https://api.github.com");
@@ -128,6 +131,7 @@ public class AuthorizationService {
         }
     }
 
+    // Method to fetch Bitbucket username
     public String getBitbucketUsername(String accessToken, String clientId) {
         String uri = "https://api.bitbucket.org/2.0/user";
 
@@ -150,6 +154,8 @@ public class AuthorizationService {
             return null;
         }
     }
+
+    // Methods below are to exchange the code we get for the Aouth app callback to get the access token
 
     public String exchangeCodeForAccessToken(String code) {
         String uri = "https://github.com/login/oauth/access_token";
@@ -262,6 +268,8 @@ public class AuthorizationService {
         }
     }
 
+    // Methods below are to fetch repo for each platform
+    // Method to fetch repositories from Github
     public List<Map<String, Object>> getRepositories(String clientId) {
         String accessToken = retrieveAccessToken(Gitrep.PlatformType.GITHUB, clientId);
         if (accessToken == null) {
