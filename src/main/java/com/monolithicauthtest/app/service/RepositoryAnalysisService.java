@@ -41,16 +41,16 @@ public class RepositoryAnalysisService {
         this.restTemplate = new RestTemplate();
     }
 
-    public String getJavaVersionFromGithubRepo(String repoName, String clientId) {
-        String accessToken = authorizationService.retrieveAccessToken(Gitrep.PlatformType.GITHUB, clientId);
+    public String getJavaVersionFromGithubRepo(String repoName, String userId) {
+        String accessToken = authorizationService.retrieveAccessToken(Gitrep.PlatformType.GITHUB, userId);
         if (accessToken == null) {
             throw new IllegalStateException("No access token available for GitHub");
         }
 
         Gitrep.PlatformType platformType = Gitrep.PlatformType.GITHUB;
         Gitrep gitrep = gitrepRepository
-            .findByClientidAndPlatformType(clientId, platformType)
-            .orElseThrow(() -> new IllegalStateException("Gitrep not found for clientId: " + clientId + " and platform: " + platformType));
+            .findByClientidAndPlatformType(userId, platformType)
+            .orElseThrow(() -> new IllegalStateException("Gitrep not found for userId: " + userId + " and platform: " + platformType));
         String username = gitrep.getUsername();
 
         String fileContent = fetchFileContentFromGitHub(username, repoName, "pom.xml", accessToken);

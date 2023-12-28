@@ -106,16 +106,18 @@ export class AuthorizationComponent implements OnInit {
     const selectElement = event.target as HTMLSelectElement;
     const repoName = selectElement.value;
 
-    const clientId = '1';
-
-    this.AuthorizationService.getJavaVersionFromGitHub(repoName, clientId).subscribe({
-      next: version => {
-        this.selectedJavaVersion = version;
-      },
-      error: error => {
-        console.error('Error fetching Java version', error);
-        this.selectedJavaVersion = 'Error fetching version';
-      },
-    });
+    if (this.userLogin) {
+      this.AuthorizationService.getJavaVersionFromGitHub(repoName, this.userLogin).subscribe({
+        next: version => {
+          this.selectedJavaVersion = version;
+        },
+        error: error => {
+          console.error('Error fetching Java version', error);
+          this.selectedJavaVersion = 'Error fetching version';
+        },
+      });
+    } else {
+      console.error('User login is not available');
+    }
   }
 }
