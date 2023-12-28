@@ -23,4 +23,12 @@ export class AuthorizationService {
   saveClientUrl(clientUrl: string, platformType: string): Observable<any> {
     return this.http.post('/api/save-client-url', { clientUrl, platformType });
   }
+  getJavaVersionFromGitHub(repoName: string, userLogin: string): Observable<string> {
+    return this.http.get<string>('/api/github/java-version', {
+      params: {
+        repoName: repoName,
+        userLogin: userLogin,
+      },
+    });
+  }
 }

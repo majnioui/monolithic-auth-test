@@ -17,6 +17,7 @@ export class AuthorizationComponent implements OnInit {
   urlValue: string = '';
   account: Account | null = null;
   userLogin: string | null = null;
+  selectedJavaVersion: string | null = null;
 
   constructor(
     private accountService: AccountService,
@@ -98,6 +99,25 @@ export class AuthorizationComponent implements OnInit {
         return this.bitbucketRepositories.length === 0;
       default:
         return false;
+    }
+  }
+
+  onRepositorySelect(event: Event) {
+    const selectElement = event.target as HTMLSelectElement;
+    const repoName = selectElement.value;
+
+    if (this.userLogin) {
+      this.AuthorizationService.getJavaVersionFromGitHub(repoName, this.userLogin).subscribe({
+        next: version => {
+          this.selectedJavaVersion = version;
+        },
+        error: error => {
+          console.error('Error fetching Java version', error);
+          this.selectedJavaVersion = 'Error fetching version';
+        },
+      });
+    } else {
+      console.error('User login is not available');
     }
   }
 }
