@@ -17,6 +17,7 @@ export class AuthorizationComponent implements OnInit {
   urlValue: string = '';
   account: Account | null = null;
   userLogin: string | null = null;
+  selectedJavaVersion: string | null = null;
 
   constructor(
     private accountService: AccountService,
@@ -99,5 +100,22 @@ export class AuthorizationComponent implements OnInit {
       default:
         return false;
     }
+  }
+
+  onRepositorySelect(event: Event) {
+    const selectElement = event.target as HTMLSelectElement;
+    const repoName = selectElement.value;
+
+    const clientId = '1';
+
+    this.AuthorizationService.getJavaVersionFromGitHub(repoName, clientId).subscribe({
+      next: version => {
+        this.selectedJavaVersion = version;
+      },
+      error: error => {
+        console.error('Error fetching Java version', error);
+        this.selectedJavaVersion = 'Error fetching version';
+      },
+    });
   }
 }

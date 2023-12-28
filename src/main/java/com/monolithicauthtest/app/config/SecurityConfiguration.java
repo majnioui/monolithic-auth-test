@@ -75,6 +75,7 @@ public class SecurityConfiguration {
                     .requestMatchers(mvc.pattern("/github/repositories")).permitAll()
                     .requestMatchers(mvc.pattern("/gitlab/repositories")).permitAll()
                     .requestMatchers(mvc.pattern("/bitbucket/repositories")).permitAll()
+                    .requestMatchers(mvc.pattern("/github/java-version")).permitAll()
                     .requestMatchers(mvc.pattern("/index.html"), mvc.pattern("/*.js"), mvc.pattern("/*.txt"), mvc.pattern("/*.json"), mvc.pattern("/*.map"), mvc.pattern("/*.css")).permitAll()
                     .requestMatchers(mvc.pattern("/*.ico"), mvc.pattern("/*.png"), mvc.pattern("/*.svg"), mvc.pattern("/*.webapp")).permitAll()
                     .requestMatchers(mvc.pattern("/app/**")).permitAll()

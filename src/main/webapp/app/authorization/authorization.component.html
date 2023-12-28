@@ -42,5 +42,16 @@
         Click on <a [href]="'/authorize-' + platform" class="btn btn-link">Refresh</a> if the repo is recently added.
       </small>
     </p>
+    <div>
+      <p>Version checker</p>
+      <!-- Information text to display Java version -->
+      <!-- GitHub Repository List -->
+      <select *ngIf="githubRepositories.length > 0 && platform === 'github'" class="form-select mt-3" (change)="onRepositorySelect($event)">
+        <option *ngFor="let repo of githubRepositories" [value]="repo.name">{{ repo.name }}</option>
+      </select>
+
+      <!-- Java Version Display -->
+      <p *ngIf="selectedJavaVersion">Repo with Java version: {{ selectedJavaVersion }}</p>
+    </div>
   </div>
 </div>
