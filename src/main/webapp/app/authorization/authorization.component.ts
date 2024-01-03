@@ -18,6 +18,9 @@ export class AuthorizationComponent implements OnInit {
   account: Account | null = null;
   userLogin: string | null = null;
 
+  selectedGithubRepo: string | null = null;
+  suggestedBuildpack: string | null = null;
+
   constructor(
     private accountService: AccountService,
     private AuthorizationService: AuthorizationService,
@@ -98,6 +101,22 @@ export class AuthorizationComponent implements OnInit {
         return this.bitbucketRepositories.length === 0;
       default:
         return false;
+    }
+  }
+
+  onRepoSelected() {
+    if (this.selectedGithubRepo) {
+      this.AuthorizationService.getSuggestedBuildpack(this.selectedGithubRepo).subscribe({
+        next: buildpack => {
+          this.suggestedBuildpack = buildpack;
+        },
+        error: error => {
+          console.error('Error fetching suggested buildpack:', error);
+          this.suggestedBuildpack = null;
+        },
+      });
+    } else {
+      this.suggestedBuildpack = null;
     }
   }
 }

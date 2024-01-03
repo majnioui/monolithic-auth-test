@@ -23,4 +23,8 @@ export class AuthorizationService {
   saveClientUrl(clientUrl: string, platformType: string): Observable<any> {
     return this.http.post('/api/save-client-url', { clientUrl, platformType });
   }
+
+  getSuggestedBuildpack(repoName: string): Observable<string> {
+    return this.http.get<string>(`/api/suggest-buildpack?repoName=${repoName}`);
+  }
 }
