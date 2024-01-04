@@ -2,6 +2,7 @@ package com.monolithicauthtest.app.service;
 
 import com.monolithicauthtest.app.domain.Gitrep;
 import com.monolithicauthtest.app.domain.User;
+import com.monolithicauthtest.app.repository.GitrepRepository;
 import com.monolithicauthtest.app.repository.UserRepository;
 import java.util.Map;
 import java.util.Optional;
@@ -17,20 +18,25 @@ public class BuildService {
     private final RestTemplate restTemplate;
     private final AuthorizationService authorizationService;
     private final UserRepository userRepository;
+    private final GitrepRepository gitrepRepository;
 
-    public BuildService(AuthorizationService authorizationService, UserRepository userRepository) {
+    public BuildService(AuthorizationService authorizationService, UserRepository userRepository, GitrepRepository gitrepRepository) {
         this.authorizationService = authorizationService;
         this.userRepository = userRepository;
+        this.gitrepRepository = gitrepRepository;
         this.restTemplate = new RestTemplate();
     }
 
     public String suggestBuildpack(String repoName, String userLogin) {
         String userId = getUserIdByLogin(userLogin);
+        if (userId == null) {
+            throw new IllegalStateException("User not found for login: " + userLogin);
+        }
         String accessToken = authorizationService.retrieveAccessToken(Gitrep.PlatformType.GITHUB, userId);
-
-        if (checkFileExistsInRepo(repoName, "pom.xml", accessToken, userLogin)) {
+        String githubUsername = getGithubUsername(userId);
+        if (checkFileExistsInRepo(repoName, "pom.xml", accessToken, githubUsername)) {
             return "Java Buildpack";
-        } else if (checkFileExistsInRepo(repoName, "package.json", accessToken, userLogin)) {
+        } else if (checkFileExistsInRepo(repoName, "package.json", accessToken, githubUsername)) {
             return "Node.js Buildpack";
         } else {
             return "Default Buildpack";
@@ -51,19 +57,24 @@ public class BuildService {
                 request,
                 new ParameterizedTypeReference<Map<String, Object>>() {}
             );
-            // If the request is successful, the file exists
             return response.getStatusCode() == HttpStatus.OK;
         } catch (HttpClientErrorException e) {
-            // If the file doesn't exist, GitHub API will return a 404 error
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 return false;
             }
-            throw e; // Re-throw other exceptions
+            throw e;
         }
     }
 
     private String getUserIdByLogin(String login) {
         Optional<User> userOpt = userRepository.findOneByLogin(login);
         return userOpt.map(User::getId).map(String::valueOf).orElse(null);
+    }
+
+    private String getGithubUsername(String userId) {
+        Gitrep gitrep = gitrepRepository
+            .findByClientidAndPlatformType(userId, Gitrep.PlatformType.GITHUB)
+            .orElseThrow(() -> new IllegalStateException("Gitrep not found for userId: " + userId));
+        return gitrep.getUsername();
     }
 }
