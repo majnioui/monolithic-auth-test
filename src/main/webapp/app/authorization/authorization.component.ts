@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { AccountService } from 'app/core/auth/account.service';
 import { AuthorizationService } from '../services/authorization.service';
 import { Account } from 'app/core/auth/account.model';
@@ -24,6 +24,7 @@ export class AuthorizationComponent implements OnInit {
   constructor(
     private accountService: AccountService,
     private AuthorizationService: AuthorizationService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
@@ -105,10 +106,11 @@ export class AuthorizationComponent implements OnInit {
   }
 
   onRepoSelected() {
-    if (this.selectedGithubRepo) {
-      this.AuthorizationService.getSuggestedBuildpack(this.selectedGithubRepo).subscribe({
-        next: buildpack => {
-          this.suggestedBuildpack = buildpack;
+    if (this.selectedGithubRepo && this.userLogin) {
+      this.AuthorizationService.getSuggestedBuildpack(this.selectedGithubRepo, this.userLogin).subscribe({
+        next: response => {
+          this.suggestedBuildpack = response.buildpack;
+          this.cdr.detectChanges();
         },
         error: error => {
           console.error('Error fetching suggested buildpack:', error);
