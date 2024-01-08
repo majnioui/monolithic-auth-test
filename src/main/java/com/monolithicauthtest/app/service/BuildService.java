@@ -75,24 +75,32 @@ public class BuildService {
     }
 
     public void cloneRepositoryForUser(String repoName, String userLogin, Gitrep.PlatformType platformType) throws GitAPIException {
-        log.debug("Starting cloneRepositoryForUser with repoName: {}, userLogin: {}, platformType: {}", repoName, userLogin, platformType);
+        log.debug(
+            "Checking if repository already exists for repoName: {}, userLogin: {}, platformType: {}",
+            repoName,
+            userLogin,
+            platformType
+        );
 
-        String userId = getUserIdByLogin(userLogin);
-        if (userId == null) {
-            throw new IllegalStateException("User not found for login: " + userLogin);
+        String repoDirPath = System.getProperty("user.dir") + File.separator + repoName;
+        File repoDir = new File(repoDirPath);
+
+        if (repoDir.exists() && repoDir.isDirectory()) {
+            log.info("Repository already exists at: {}. Skipping cloning.", repoDirPath);
+            return; // Skip cloning if the directory already exists
         }
-        String accessToken = authorizationService.retrieveAccessToken(platformType, userId);
+
+        // Rest of the cloning logic...
+        String accessToken = authorizationService.retrieveAccessToken(platformType, getUserIdByLogin(userLogin));
         if (accessToken == null) {
             throw new IllegalStateException("No access token available for " + platformType);
         }
 
-        String username = getUsernameFromGitrep(userId, platformType);
-        log.debug("Username retrieved for platform {}: {}", platformType, username);
-
+        String username = getUsernameFromGitrep(getUserIdByLogin(userLogin), platformType);
         String repoUrl = getRepoCloneUrl(platformType, username, repoName, accessToken);
 
         cloneRepository(repoUrl, repoName, accessToken, platformType);
-        log.info("Repository cloning completed for {}", repoName);
+        log.info("Repository cloned successfully into {}", repoDirPath);
     }
 
     private String getRepoCloneUrl(Gitrep.PlatformType platformType, String username, String repoName, String accessToken) {
