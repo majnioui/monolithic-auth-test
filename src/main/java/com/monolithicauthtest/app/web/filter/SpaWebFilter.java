@@ -33,6 +33,7 @@ public class SpaWebFilter extends OncePerRequestFilter {
             !path.startsWith("/bitbucket/repositories") &&
             !path.startsWith("/api/save-client-url") &&
             !path.startsWith("/suggest-buildpack") &&
+            !path.startsWith("/clone-repo") &&
             !path.contains(".") &&
             path.matches("/(.*)")
         ) {

@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { AccountService } from 'app/core/auth/account.service';
 import { AuthorizationService } from '../services/authorization.service';
 import { Account } from 'app/core/auth/account.model';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-test-github',
@@ -20,11 +21,13 @@ export class AuthorizationComponent implements OnInit {
 
   selectedGithubRepo: string | null = null;
   suggestedBuildpack: string | null = null;
+  selectedRepo: string | null = null;
 
   constructor(
     private accountService: AccountService,
     private AuthorizationService: AuthorizationService,
     private cdr: ChangeDetectorRef,
+    private http: HttpClient,
   ) {}
 
   ngOnInit() {
@@ -106,10 +109,11 @@ export class AuthorizationComponent implements OnInit {
   }
 
   onRepoSelected() {
-    if (this.selectedGithubRepo && this.userLogin) {
-      this.AuthorizationService.getSuggestedBuildpack(this.selectedGithubRepo, this.userLogin).subscribe({
+    if (this.selectedRepo && this.userLogin) {
+      this.AuthorizationService.getSuggestedBuildpack(this.selectedRepo, this.userLogin).subscribe({
         next: response => {
           this.suggestedBuildpack = response.buildpack;
+          this.cloneSelectedRepository();
           this.cdr.detectChanges();
         },
         error: error => {
@@ -119,6 +123,31 @@ export class AuthorizationComponent implements OnInit {
       });
     } else {
       this.suggestedBuildpack = null;
+    }
+  }
+
+  private cloneSelectedRepository() {
+    if (this.selectedRepo && this.userLogin) {
+      this.AuthorizationService.cloneRepository(this.selectedRepo, this.userLogin).subscribe({
+        next: () => console.log('Repository cloning started'),
+        error: error => console.error('Error cloning repository:', error),
+      });
+    } else {
+      console.error('Repository name or user login is missing');
+    }
+  }
+
+  // Method to get the repository list based on the selected platform
+  getRepositoryList() {
+    switch (this.platform) {
+      case 'github':
+        return this.githubRepositories;
+      case 'gitlab':
+        return this.gitlabRepositories;
+      case 'bitbucket':
+        return this.bitbucketRepositories;
+      default:
+        return [];
     }
   }
 }

@@ -3,9 +3,11 @@ package com.monolithicauthtest.app.web.rest;
 import com.monolithicauthtest.app.service.BuildService;
 import java.util.HashMap;
 import java.util.Map;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,6 +31,16 @@ public class BuildController {
             return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Error suggesting buildpack: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/clone-repo")
+    public ResponseEntity<?> cloneRepository(@RequestParam String repoName, @RequestParam String userLogin) {
+        try {
+            buildService.cloneRepositoryForUser(repoName, userLogin);
+            return ResponseEntity.ok().build();
+        } catch (GitAPIException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

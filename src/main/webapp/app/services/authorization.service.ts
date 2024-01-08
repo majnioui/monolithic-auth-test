@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -26,5 +26,10 @@ export class AuthorizationService {
 
   getSuggestedBuildpack(repoName: string, userLogin: string): Observable<any> {
     return this.http.get<any>(`/suggest-buildpack?repoName=${repoName}&userLogin=${userLogin}`);
+  }
+
+  cloneRepository(repoName: string, userLogin: string): Observable<any> {
+    const params = new HttpParams().set('repoName', repoName).set('userLogin', userLogin);
+    return this.http.post('/clone-repo', null, { params });
   }
 }
