@@ -28,8 +28,8 @@ export class AuthorizationService {
     return this.http.get<any>(`/suggest-buildpack?repoName=${repoName}&userLogin=${userLogin}`);
   }
 
-  cloneRepository(repoName: string, userLogin: string): Observable<any> {
-    const params = new HttpParams().set('repoName', repoName).set('userLogin', userLogin);
+  cloneRepository(repoName: string, userLogin: string, platformType: string): Observable<any> {
+    const params = new HttpParams().set('repoName', repoName).set('userLogin', userLogin).set('platformType', platformType);
     return this.http.post('/clone-repo', null, { params });
   }
 }

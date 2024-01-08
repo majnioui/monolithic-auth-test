@@ -127,13 +127,13 @@ export class AuthorizationComponent implements OnInit {
   }
 
   private cloneSelectedRepository() {
-    if (this.selectedRepo && this.userLogin) {
-      this.AuthorizationService.cloneRepository(this.selectedRepo, this.userLogin).subscribe({
+    if (this.selectedRepo && this.userLogin && this.platform) {
+      this.AuthorizationService.cloneRepository(this.selectedRepo, this.userLogin, this.platform).subscribe({
         next: () => console.log('Repository cloning started'),
         error: error => console.error('Error cloning repository:', error),
       });
     } else {
-      console.error('Repository name or user login is missing');
+      console.error('Repository name, user login, or platform is missing');
     }
   }
 
