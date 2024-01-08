@@ -25,9 +25,13 @@ public class BuildController {
     }
 
     @GetMapping("/suggest-buildpack")
-    public ResponseEntity<Map<String, String>> suggestBuildpack(@RequestParam String repoName, @RequestParam String userLogin) {
+    public ResponseEntity<Map<String, String>> suggestBuildpack(
+        @RequestParam String repoName,
+        @RequestParam String userLogin,
+        @RequestParam Gitrep.PlatformType platformType
+    ) {
         try {
-            String buildpack = buildService.suggestBuildpack(repoName, userLogin);
+            String buildpack = buildService.suggestBuildpack(repoName, userLogin, platformType);
             Map<String, String> response = new HashMap<>();
             response.put("buildpack", buildpack);
             return ResponseEntity.ok(response);

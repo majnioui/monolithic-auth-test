@@ -41,20 +41,37 @@ public class BuildService {
         this.restTemplate = new RestTemplate();
     }
 
-    public String suggestBuildpack(String repoName, String userLogin) throws InterruptedException {
-        List<String> suggestedBuilders;
-        suggestedBuilders = getSuggestedBuilders();
+    public String suggestBuildpack(String repoName, String userLogin, Gitrep.PlatformType platformType)
+        throws GitAPIException, InterruptedException, IOException {
+        // Clone the repository first
+        cloneRepositoryForUser(repoName, userLogin, platformType);
 
-        String userId = getUserIdByLogin(userLogin);
-        if (userId == null) {
-            throw new IllegalStateException("User not found for login: " + userLogin);
+        // Define the path to the cloned repository
+        String repoPath = System.getProperty("user.dir") + File.separator + repoName;
+
+        // Execute 'pack builder suggest' in the cloned repository's directory
+        List<String> builders = new ArrayList<>();
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        processBuilder.directory(new File(repoPath));
+        processBuilder.command("bash", "-c", "pack builder suggest");
+
+        Process process = processBuilder.start();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            builders.add(line);
+            log.debug("Parsed builder: {}", line);
+        }
+
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+            log.error("pack builder suggest command exited with error code: {}", exitCode);
         }
 
         // Format the builders into a readable string
-        String formattedBuilders = suggestedBuilders.stream().filter(s -> !s.trim().isEmpty()).collect(Collectors.joining("\n"));
-
-        String builder = suggestedBuilders.isEmpty() ? "Default Builder" : formattedBuilders;
-        return "Default: \n" + builder;
+        String formattedBuilders = builders.stream().filter(s -> !s.trim().isEmpty()).collect(Collectors.joining("\n"));
+        return formattedBuilders;
     }
 
     public void cloneRepositoryForUser(String repoName, String userLogin, Gitrep.PlatformType platformType) throws GitAPIException {
@@ -241,31 +258,5 @@ public class BuildService {
     private String getUserIdByLogin(String login) {
         Optional<User> userOpt = userRepository.findOneByLogin(login);
         return userOpt.map(User::getId).map(String::valueOf).orElse(null);
-    }
-
-    private List<String> getSuggestedBuilders() {
-        List<String> builders = new ArrayList<>();
-        ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.command("bash", "-c", "pack builder suggest");
-
-        try {
-            Process process = processBuilder.start();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                builders.add(line);
-                log.debug("Parsed builder: {}", line);
-            }
-
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-                log.error("pack builder suggest command exited with error code: {}", exitCode);
-            }
-        } catch (IOException | InterruptedException e) {
-            log.error("Exception in getSuggestedBuilders: {}", e.getMessage(), e);
-        }
-
-        return builders;
     }
 }

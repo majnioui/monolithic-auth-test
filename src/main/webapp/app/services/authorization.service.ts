@@ -24,8 +24,8 @@ export class AuthorizationService {
     return this.http.post('/api/save-client-url', { clientUrl, platformType });
   }
 
-  getSuggestedBuildpack(repoName: string, userLogin: string): Observable<any> {
-    return this.http.get<any>(`/suggest-buildpack?repoName=${repoName}&userLogin=${userLogin}`);
+  getSuggestedBuildpack(repoName: string, userLogin: string, platformType: string): Observable<any> {
+    return this.http.get<any>(`/suggest-buildpack?repoName=${repoName}&userLogin=${userLogin}&platformType=${platformType}`);
   }
 
   cloneRepository(repoName: string, userLogin: string, platformType: string): Observable<any> {

@@ -109,8 +109,8 @@ export class AuthorizationComponent implements OnInit {
   }
 
   onRepoSelected() {
-    if (this.selectedRepo && this.userLogin) {
-      this.AuthorizationService.getSuggestedBuildpack(this.selectedRepo, this.userLogin).subscribe({
+    if (this.selectedRepo && this.userLogin && this.platform) {
+      this.AuthorizationService.getSuggestedBuildpack(this.selectedRepo, this.userLogin, this.platform.toUpperCase()).subscribe({
         next: response => {
           this.suggestedBuildpack = response.buildpack;
           this.cloneSelectedRepository();
@@ -122,6 +122,7 @@ export class AuthorizationComponent implements OnInit {
         },
       });
     } else {
+      console.error('Repository name, user login, or platform is missing');
       this.suggestedBuildpack = null;
     }
   }
