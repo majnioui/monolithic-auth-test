@@ -8,8 +8,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -76,8 +74,7 @@ public class BuildService {
 
         String repoUrl = getRepoCloneUrl(platformType, username, repoName, accessToken);
 
-        // Pass accessToken as the third argument
-        cloneRepository(repoUrl, repoName, accessToken);
+        cloneRepository(repoUrl, repoName, accessToken, platformType);
         log.info("Repository cloning completed for {}", repoName);
     }
 
@@ -208,7 +205,8 @@ public class BuildService {
             .orElseThrow(() -> new IllegalStateException("Username not found for userId: " + userId + " and platform: " + platformType));
     }
 
-    private void cloneRepository(String repoUrl, String repoName, String accessToken) throws GitAPIException {
+    private void cloneRepository(String repoUrl, String repoName, String accessToken, Gitrep.PlatformType platformType)
+        throws GitAPIException {
         String currentWorkingDir = System.getProperty("user.dir");
         String repoDirPath = currentWorkingDir + File.separator + repoName;
         File repoDir = new File(repoDirPath);
@@ -225,8 +223,14 @@ public class BuildService {
 
         log.debug("Cloning repository from URL: {} into {}", repoUrl, repoDirPath);
 
-        // Set up credentials provider
-        CredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider("oauth2", accessToken);
+        CredentialsProvider credentialsProvider;
+        if (platformType == Gitrep.PlatformType.BITBUCKET) {
+            // For Bitbucket, use the access token as the password with a generic username
+            credentialsProvider = new UsernamePasswordCredentialsProvider("x-token-auth", accessToken);
+        } else {
+            // For GitHub and GitLab, use the OAuth token
+            credentialsProvider = new UsernamePasswordCredentialsProvider("oauth2", accessToken);
+        }
 
         // Clone the repository
         Git.cloneRepository().setURI(repoUrl).setDirectory(repoDir).setCredentialsProvider(credentialsProvider).call();
