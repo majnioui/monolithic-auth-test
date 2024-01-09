@@ -90,7 +90,6 @@ public class BuildService {
             return; // Skip cloning if the directory already exists
         }
 
-        // Rest of the cloning logic...
         String accessToken = authorizationService.retrieveAccessToken(platformType, getUserIdByLogin(userLogin));
         if (accessToken == null) {
             throw new IllegalStateException("No access token available for " + platformType);
@@ -101,6 +100,36 @@ public class BuildService {
 
         cloneRepository(repoUrl, repoName, accessToken, platformType);
         log.info("Repository cloned successfully into {}", repoDirPath);
+    }
+
+    public void executeCustomBuildCommand(String repoName, String userLogin, Gitrep.PlatformType platformType, String buildCommand)
+        throws GitAPIException, InterruptedException, IOException {
+        // Ensure the repository is cloned first
+        cloneRepositoryForUser(repoName, userLogin, platformType);
+
+        // Define the path to the cloned repository
+        String repoPath = System.getProperty("user.dir") + File.separator + repoName;
+
+        // Execute the custom build command in the cloned repository's directory
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        processBuilder.directory(new File(repoPath));
+        processBuilder.command("bash", "-c", buildCommand);
+
+        Process process = processBuilder.start();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            log.info("Command output: {}", line);
+        }
+
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+            log.error("Custom build command exited with error code: {}", exitCode);
+            throw new IllegalStateException("Custom build command failed with error code: " + exitCode);
+        }
+
+        log.info("Custom build command executed successfully in {}", repoPath);
     }
 
     private String getRepoCloneUrl(Gitrep.PlatformType platformType, String username, String repoName, String accessToken) {

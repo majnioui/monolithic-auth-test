@@ -32,4 +32,13 @@ export class AuthorizationService {
     const params = new HttpParams().set('repoName', repoName).set('userLogin', userLogin).set('platformType', platformType);
     return this.http.post('/clone-repo', null, { params });
   }
+
+  executeBuildCommand(repoName: string, userLogin: string, platform: string, buildCommand: string): Observable<any> {
+    return this.http.post(`/execute-build-command`, {
+      repoName,
+      userLogin,
+      platformTypeString: platform,
+      buildCommand,
+    });
+  }
 }

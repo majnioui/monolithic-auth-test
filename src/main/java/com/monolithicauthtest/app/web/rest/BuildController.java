@@ -2,6 +2,7 @@ package com.monolithicauthtest.app.web.rest;
 
 import com.monolithicauthtest.app.domain.Gitrep;
 import com.monolithicauthtest.app.service.BuildService;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -57,6 +58,22 @@ public class BuildController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid platform type: " + platformType);
         } catch (GitAPIException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/execute-build-command")
+    public ResponseEntity<?> executeBuildCommand(
+        @RequestParam String repoName,
+        @RequestParam String userLogin,
+        @RequestParam String platformTypeString,
+        @RequestParam String buildCommand
+    ) {
+        try {
+            Gitrep.PlatformType platformType = Gitrep.PlatformType.valueOf(platformTypeString.toUpperCase());
+            buildService.executeCustomBuildCommand(repoName, userLogin, platformType, buildCommand);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException | GitAPIException | InterruptedException | IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error executing build command: " + e.getMessage());
         }
     }
 }

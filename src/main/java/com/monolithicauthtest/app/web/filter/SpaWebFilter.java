@@ -34,6 +34,7 @@ public class SpaWebFilter extends OncePerRequestFilter {
             !path.startsWith("/api/save-client-url") &&
             !path.startsWith("/suggest-buildpack") &&
             !path.startsWith("/clone-repo") &&
+            !path.startsWith("/execute-build-command") &&
             !path.contains(".") &&
             path.matches("/(.*)")
         ) {

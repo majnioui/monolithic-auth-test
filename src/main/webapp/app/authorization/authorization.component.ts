@@ -22,6 +22,7 @@ export class AuthorizationComponent implements OnInit {
   selectedGithubRepo: string | null = null;
   suggestedBuildpack: string | null = null;
   selectedRepo: string | null = null;
+  customBuildCommand: string = '';
 
   constructor(
     private accountService: AccountService,
@@ -149,6 +150,19 @@ export class AuthorizationComponent implements OnInit {
         return this.bitbucketRepositories;
       default:
         return [];
+    }
+  }
+
+  // Method to handle the custom build command execution
+  executeCustomBuildCommand() {
+    if (this.selectedRepo && this.userLogin && this.platform && this.customBuildCommand) {
+      // Call a new backend service method to execute the custom build command
+      this.AuthorizationService.executeBuildCommand(this.selectedRepo, this.userLogin, this.platform, this.customBuildCommand).subscribe({
+        next: () => console.log('Custom build command executed'),
+        error: error => console.error('Error executing custom build command:', error),
+      });
+    } else {
+      console.error('Required data is missing for executing the custom build command');
     }
   }
 }
