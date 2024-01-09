@@ -51,7 +51,8 @@
     <!-- Suggested Buildpack -->
     <div *ngIf="selectedRepo">
       <p class="mt-3">{{ suggestedBuildpack }}</p>
-      <input type="text" class="form-control mt-3" placeholder="Or enter your preferred buildpack" />
+      <input type="text" class="form-control mt-3" placeholder="Enter your command here" [(ngModel)]="customBuildCommand" />
+      <button class="btn btn-primary mt-2" (click)="executeCommand()">Execute Command</button>
     </div>
   </div>
 </div>

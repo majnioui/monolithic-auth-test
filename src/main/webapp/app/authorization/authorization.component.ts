@@ -156,13 +156,20 @@ export class AuthorizationComponent implements OnInit {
   // Method to handle the custom build command execution
   executeCustomBuildCommand() {
     if (this.selectedRepo && this.userLogin && this.platform && this.customBuildCommand) {
-      // Call a new backend service method to execute the custom build command
-      this.AuthorizationService.executeBuildCommand(this.selectedRepo, this.userLogin, this.platform, this.customBuildCommand).subscribe({
-        next: () => console.log('Custom build command executed'),
-        error: error => console.error('Error executing custom build command:', error),
+      this.AuthorizationService.executeBuildCommand(
+        this.selectedRepo,
+        this.userLogin,
+        this.platform.toUpperCase(),
+        this.customBuildCommand,
+      ).subscribe({
+        next: response => {
+          console.log('Command execution started');
+          // Handle response if needed
+        },
+        error: error => console.error('Error executing command:', error),
       });
     } else {
-      console.error('Required data is missing for executing the custom build command');
+      console.error('Missing information for command execution');
     }
   }
 }
