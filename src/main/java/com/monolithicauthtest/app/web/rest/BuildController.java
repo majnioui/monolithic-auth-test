@@ -65,12 +65,12 @@ public class BuildController {
     public ResponseEntity<?> executeBuildCommand(
         @RequestParam String repoName,
         @RequestParam String userLogin,
-        @RequestParam String platformTypeString,
-        @RequestParam String buildCommand
+        @RequestParam String platformType,
+        @RequestParam String command
     ) {
         try {
-            Gitrep.PlatformType platformType = Gitrep.PlatformType.valueOf(platformTypeString.toUpperCase());
-            buildService.executeCustomBuildCommand(repoName, userLogin, platformType, buildCommand);
+            Gitrep.PlatformType platformTypeEnum = Gitrep.PlatformType.valueOf(platformType.toUpperCase());
+            buildService.executeCustomBuildCommand(repoName, userLogin, platformTypeEnum, command);
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException | GitAPIException | InterruptedException | IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error executing build command: " + e.getMessage());

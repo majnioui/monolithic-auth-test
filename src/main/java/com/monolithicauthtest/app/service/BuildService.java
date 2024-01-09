@@ -102,7 +102,7 @@ public class BuildService {
         log.info("Repository cloned successfully into {}", repoDirPath);
     }
 
-    public void executeCustomBuildCommand(String repoName, String userLogin, Gitrep.PlatformType platformType, String buildCommand)
+    public void executeCustomBuildCommand(String repoName, String userLogin, Gitrep.PlatformType platformType, String command)
         throws GitAPIException, InterruptedException, IOException {
         // Ensure the repository is cloned first
         cloneRepositoryForUser(repoName, userLogin, platformType);
@@ -113,14 +113,26 @@ public class BuildService {
         // Execute the custom build command in the cloned repository's directory
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(new File(repoPath));
-        processBuilder.command("bash", "-c", buildCommand);
+        processBuilder.command("bash", "-c", command);
 
         Process process = processBuilder.start();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-        String line;
-        while ((line = reader.readLine()) != null) {
-            log.info("Command output: {}", line);
+        // Read standard output and error streams
+        try (
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))
+        ) {
+            // Reading standard output
+            String line;
+            while ((line = reader.readLine()) != null) {
+                log.info("Command output: {}", line);
+            }
+
+            // Reading standard error
+            String errorLine;
+            while ((errorLine = errorReader.readLine()) != null) {
+                log.error("Command error: {}", errorLine);
+            }
         }
 
         int exitCode = process.waitFor();
