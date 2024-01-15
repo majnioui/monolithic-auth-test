@@ -159,13 +159,29 @@ public class BuildService {
         processBuilder.command("bash", "-c", saveCommand);
         Process saveProcess = processBuilder.start();
 
-        // Wait for the process to complete and check for errors
-        int saveExitCode = saveProcess.waitFor();
-        if (saveExitCode != 0) {
-            log.error("Failed to save the image as a .tar file");
-            throw new IllegalStateException("Failed to save the image");
+        // Read the output and error streams for the save process
+        try (
+            BufferedReader saveReader = new BufferedReader(new InputStreamReader(saveProcess.getInputStream()));
+            BufferedReader saveErrorReader = new BufferedReader(new InputStreamReader(saveProcess.getErrorStream()))
+        ) {
+            // Reading save command output
+            String saveLine;
+            while ((saveLine = saveReader.readLine()) != null) {
+                log.info("Save command output: {}", saveLine);
+            }
+
+            // Reading save command error
+            String saveErrorLine;
+            while ((saveErrorLine = saveErrorReader.readLine()) != null) {
+                log.error("Save command error: {}", saveErrorLine);
+            }
         }
 
+        int saveExitCode = saveProcess.waitFor();
+        if (saveExitCode != 0) {
+            log.error("Failed to save the image as a .tar file with error code: {}", saveExitCode);
+            throw new IllegalStateException("Failed to save the image with error code: " + saveExitCode);
+        }
         log.info("Image saved successfully as a .tar file in {}", tarFilePath);
     }
 
