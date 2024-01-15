@@ -23,6 +23,7 @@ export class AuthorizationComponent implements OnInit {
   suggestedBuildpack: string | null = null;
   selectedRepo: string | null = null;
   customBuildCommand: string = '';
+  isBuildSuccessful: boolean = false;
 
   constructor(
     private accountService: AccountService,
@@ -164,12 +165,42 @@ export class AuthorizationComponent implements OnInit {
       ).subscribe({
         next: response => {
           console.log('Command execution started');
+          this.isBuildSuccessful = true; // Set to true when build is successful
           // Handle response if needed
         },
-        error: error => console.error('Error executing command:', error),
+        error: error => {
+          console.error('Error executing command:', error);
+          this.isBuildSuccessful = false; // Set to false if the build fails
+        },
       });
     } else {
       console.error('Missing information for command execution');
+      this.isBuildSuccessful = false;
     }
+  }
+
+  // Method to to trigger push to registry
+  pushImageToRegistry() {
+    if (this.isBuildSuccessful) {
+      const imageName = 'rkube-' + this.getFormattedDateTime();
+      const registryUrl = 'myregistry.example.com'; // Replace with your registry URL
+      this.AuthorizationService.pushToRegistry(imageName, registryUrl).subscribe({
+        next: () => {
+          console.log('Image pushed to registry successfully');
+          // Handle successful push
+        },
+        error: error => {
+          console.error('Error pushing image to registry:', error);
+          // Handle errors here
+        },
+      });
+    } else {
+      console.error('Image build was not successful or missing parameters. Cannot push to registry.');
+    }
+  }
+
+  // Helper method to get the formatted date and time for the image name
+  private getFormattedDateTime(): string {
+    return new Date().toISOString().replace(/[-:.]/g, '').slice(0, 15);
   }
 }

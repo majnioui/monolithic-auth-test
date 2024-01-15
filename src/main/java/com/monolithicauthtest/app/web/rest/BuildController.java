@@ -76,4 +76,14 @@ public class BuildController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error executing build command: " + e.getMessage());
         }
     }
+
+    @PostMapping("/push-to-registry")
+    public ResponseEntity<?> pushToRegistry(@RequestParam String imageName, @RequestParam String registryUrl) {
+        try {
+            buildService.pushImageToRegistry(imageName, registryUrl);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error pushing image to registry: " + e.getMessage());
+        }
+    }
 }

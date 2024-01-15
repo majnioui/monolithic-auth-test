@@ -35,6 +35,7 @@ public class SpaWebFilter extends OncePerRequestFilter {
             !path.startsWith("/suggest-buildpack") &&
             !path.startsWith("/clone-repo") &&
             !path.startsWith("/execute-build-command") &&
+            !path.startsWith("/push-to-registry") &&
             !path.contains(".") &&
             path.matches("/(.*)")
         ) {

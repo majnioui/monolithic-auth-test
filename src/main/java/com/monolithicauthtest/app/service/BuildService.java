@@ -185,6 +185,30 @@ public class BuildService {
         log.info("Image saved successfully as a .tar file in {}", tarFilePath);
     }
 
+    public void pushImageToRegistry(String imageName, String registryUrl) throws IOException, InterruptedException {
+        String taggedImageName = registryUrl + "/" + imageName;
+
+        // Tag the image
+        ProcessBuilder tagProcessBuilder = new ProcessBuilder();
+        tagProcessBuilder.command("bash", "-c", "docker tag " + imageName + " " + taggedImageName);
+        Process tagProcess = tagProcessBuilder.start();
+        int tagExitCode = tagProcess.waitFor();
+        if (tagExitCode != 0) {
+            throw new IllegalStateException("Failed to tag the image with error code: " + tagExitCode);
+        }
+
+        // Push the image
+        ProcessBuilder pushProcessBuilder = new ProcessBuilder();
+        pushProcessBuilder.command("bash", "-c", "docker push " + taggedImageName);
+        Process pushProcess = pushProcessBuilder.start();
+        int pushExitCode = pushProcess.waitFor();
+        if (pushExitCode != 0) {
+            throw new IllegalStateException("Failed to push the image with error code: " + pushExitCode);
+        }
+
+        log.info("Image successfully pushed to {}", taggedImageName);
+    }
+
     private String getRepoCloneUrl(Gitrep.PlatformType platformType, String username, String repoName, String accessToken) {
         switch (platformType) {
             case GITHUB:
