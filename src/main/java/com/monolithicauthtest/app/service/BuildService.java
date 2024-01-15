@@ -8,7 +8,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -110,10 +112,16 @@ public class BuildService {
         // Define the path to the cloned repository
         String repoPath = System.getProperty("user.dir") + File.separator + repoName;
 
+        // Format the date and time in the desired format
+        String dateTime = new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date());
+
+        // Construct the full command with the hardcoded part and the variable part
+        String fullCommand = "sudo pack build rkube-" + dateTime + " --builder " + command;
+
         // Execute the custom build command in the cloned repository's directory
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(new File(repoPath));
-        processBuilder.command("bash", "-c", command);
+        processBuilder.command("bash", "-c", fullCommand);
 
         Process process = processBuilder.start();
 
@@ -142,6 +150,23 @@ public class BuildService {
         }
 
         log.info("Custom build command executed successfully in {}", repoPath);
+
+        // Define the path for the .tar file
+        String tarFilePath = System.getProperty("user.dir") + File.separator + "rkube-" + dateTime + ".tar";
+
+        // Save the image as a .tar file
+        String saveCommand = "docker save -o " + tarFilePath + " rkube-" + dateTime;
+        processBuilder.command("bash", "-c", saveCommand);
+        Process saveProcess = processBuilder.start();
+
+        // Wait for the process to complete and check for errors
+        int saveExitCode = saveProcess.waitFor();
+        if (saveExitCode != 0) {
+            log.error("Failed to save the image as a .tar file");
+            throw new IllegalStateException("Failed to save the image");
+        }
+
+        log.info("Image saved successfully as a .tar file in {}", tarFilePath);
     }
 
     private String getRepoCloneUrl(Gitrep.PlatformType platformType, String username, String repoName, String accessToken) {
