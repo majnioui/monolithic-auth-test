@@ -78,9 +78,9 @@ public class BuildController {
     }
 
     @PostMapping("/push-to-registry")
-    public ResponseEntity<?> pushToRegistry(@RequestParam String imageName, @RequestParam String registryUrl) {
+    public ResponseEntity<?> pushToRegistry(@RequestParam String imageName) {
         try {
-            buildService.pushImageToRegistry(imageName, registryUrl);
+            buildService.pushImageToRegistry(imageName);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error pushing image to registry: " + e.getMessage());

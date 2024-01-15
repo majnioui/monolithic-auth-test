@@ -183,8 +183,7 @@ export class AuthorizationComponent implements OnInit {
   pushImageToRegistry() {
     if (this.isBuildSuccessful) {
       const imageName = 'rkube-' + this.getFormattedDateTime();
-      const registryUrl = 'myregistry.example.com'; // Replace with your registry URL
-      this.AuthorizationService.pushToRegistry(imageName, registryUrl).subscribe({
+      this.AuthorizationService.pushToRegistry(imageName).subscribe({
         next: () => {
           console.log('Image pushed to registry successfully');
           // Handle successful push

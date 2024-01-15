@@ -185,8 +185,10 @@ public class BuildService {
         log.info("Image saved successfully as a .tar file in {}", tarFilePath);
     }
 
-    public void pushImageToRegistry(String imageName, String registryUrl) throws IOException, InterruptedException {
-        String taggedImageName = registryUrl + "/" + imageName;
+    public void pushImageToRegistry(String imageName) throws IOException, InterruptedException {
+        String dockerHubUsername = "majnioui"; // Your Docker Hub username
+        String repositoryName = "testingmoe"; // Your Docker Hub repository name
+        String taggedImageName = dockerHubUsername + "/" + repositoryName + ":" + imageName;
 
         // Tag the image
         ProcessBuilder tagProcessBuilder = new ProcessBuilder();
@@ -206,7 +208,7 @@ public class BuildService {
             throw new IllegalStateException("Failed to push the image with error code: " + pushExitCode);
         }
 
-        log.info("Image successfully pushed to {}", taggedImageName);
+        log.info("Image successfully pushed to Docker Hub: {}", taggedImageName);
     }
 
     private String getRepoCloneUrl(Gitrep.PlatformType platformType, String username, String repoName, String accessToken) {

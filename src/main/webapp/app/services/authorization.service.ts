@@ -43,8 +43,8 @@ export class AuthorizationService {
     return this.http.post<any>('/execute-build-command', null, { params });
   }
 
-  pushToRegistry(imageName: string, registryUrl: string): Observable<any> {
-    const params = new HttpParams().set('imageName', imageName).set('registryUrl', registryUrl);
+  pushToRegistry(imageName: string): Observable<any> {
+    const params = new HttpParams().set('imageName', imageName);
 
     return this.http.post('/push-to-registry', null, { params });
   }
