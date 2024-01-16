@@ -198,8 +198,12 @@ export class AuthorizationComponent implements OnInit {
     }
   }
 
-  // Helper method to get the formatted date and time for the image name
+  // Helper method to get the formatted date for the image name
   private getFormattedDateTime(): string {
-    return new Date().toISOString().replace(/[-:.]/g, '').slice(0, 15);
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const day = now.getDate().toString().padStart(2, '0');
+    return `${year}${month}${day}`;
   }
 }

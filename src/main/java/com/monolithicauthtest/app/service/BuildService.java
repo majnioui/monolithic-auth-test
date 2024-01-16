@@ -113,10 +113,10 @@ public class BuildService {
         String repoPath = System.getProperty("user.dir") + File.separator + repoName;
 
         // Format the date and time in the desired format
-        String dateTime = new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date());
+        String date = new SimpleDateFormat("yyyyMMdd").format(new Date());
 
         // Construct the full command with the hardcoded part and the variable part
-        String fullCommand = "sudo pack build rkube-" + dateTime + " --builder " + command;
+        String fullCommand = "sudo pack build rkube-" + date + " --builder " + command;
 
         // Execute the custom build command in the cloned repository's directory
         ProcessBuilder processBuilder = new ProcessBuilder();
@@ -152,10 +152,10 @@ public class BuildService {
         log.info("Custom build command executed successfully in {}", repoPath);
 
         // Define the path for the .tar file
-        String tarFilePath = System.getProperty("user.dir") + File.separator + "rkube-" + dateTime + ".tar";
+        String tarFilePath = System.getProperty("user.dir") + File.separator + "rkube-" + date + ".tar";
 
         // Save the image as a .tar file
-        String saveCommand = "docker save -o " + tarFilePath + " rkube-" + dateTime;
+        String saveCommand = "docker save -o " + tarFilePath + " rkube-" + date;
         processBuilder.command("bash", "-c", saveCommand);
         Process saveProcess = processBuilder.start();
 
@@ -188,27 +188,42 @@ public class BuildService {
     public void pushImageToRegistry(String imageName) throws IOException, InterruptedException {
         String dockerHubUsername = "majnioui"; // Your Docker Hub username
         String repositoryName = "testingmoe"; // Your Docker Hub repository name
+        imageName = imageName.toLowerCase(); // Convert imageName to lowercase
         String taggedImageName = dockerHubUsername + "/" + repositoryName + ":" + imageName;
+
+        log.info("Starting to tag the image: {}", imageName);
 
         // Tag the image
         ProcessBuilder tagProcessBuilder = new ProcessBuilder();
-        tagProcessBuilder.command("bash", "-c", "docker tag " + imageName + " " + taggedImageName);
+        tagProcessBuilder.command("bash", "-c", "sudo docker tag " + imageName + " " + taggedImageName);
+        tagProcessBuilder.redirectErrorStream(true); // Redirect error stream to standard output
         Process tagProcess = tagProcessBuilder.start();
-        int tagExitCode = tagProcess.waitFor();
-        if (tagExitCode != 0) {
-            throw new IllegalStateException("Failed to tag the image with error code: " + tagExitCode);
+
+        // Read the output from the command
+        BufferedReader reader = new BufferedReader(new InputStreamReader(tagProcess.getInputStream()));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            log.info(line); // Log each line of the output
         }
 
+        int tagExitCode = tagProcess.waitFor();
+        if (tagExitCode != 0) {
+            log.error("Failed to tag the image. Exit code: {}", tagExitCode);
+            throw new IllegalStateException("Failed to tag the image with error code: " + tagExitCode);
+        } else {
+            log.info("Image tagged successfully with name: {}", taggedImageName);
+        }
         // Push the image
         ProcessBuilder pushProcessBuilder = new ProcessBuilder();
-        pushProcessBuilder.command("bash", "-c", "docker push " + taggedImageName);
+        pushProcessBuilder.command("bash", "-c", "sudo docker push " + taggedImageName);
         Process pushProcess = pushProcessBuilder.start();
         int pushExitCode = pushProcess.waitFor();
         if (pushExitCode != 0) {
+            log.error("Failed to push the image. Exit code: {}", pushExitCode);
             throw new IllegalStateException("Failed to push the image with error code: " + pushExitCode);
+        } else {
+            log.info("Image successfully pushed to Docker Hub: {}", taggedImageName);
         }
-
-        log.info("Image successfully pushed to Docker Hub: {}", taggedImageName);
     }
 
     private String getRepoCloneUrl(Gitrep.PlatformType platformType, String username, String repoName, String accessToken) {
