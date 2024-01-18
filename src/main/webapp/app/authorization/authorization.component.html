@@ -68,7 +68,10 @@
         <button
           class="btn btn-secondary mt-2"
           (click)="
-            pushImageToRegistry(dockerHubUsername || selectedDockerEntity?.username, dockerRepoName || selectedDockerEntity?.repoName)
+            pushImageToRegistry(
+              dockerHubUsername || selectedDockerEntity?.username || '',
+              dockerRepoName || selectedDockerEntity?.repoName || ''
+            )
           "
         >
           Push
