@@ -1,0 +1,40 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <div *ngIf="docker">
+      <h2 data-cy="dockerDetailsHeading"><span jhiTranslate="monolithicauthtestApp.docker.detail.title">Docker</span></h2>
+
+      <hr />
+
+      <jhi-alert-error></jhi-alert-error>
+
+      <jhi-alert></jhi-alert>
+
+      <dl class="row-md jh-entity-details">
+        <dt><span jhiTranslate="global.field.id">ID</span></dt>
+        <dd>
+          <span>{{ docker.id }}</span>
+        </dd>
+        <dt><span jhiTranslate="monolithicauthtestApp.docker.username">Username</span></dt>
+        <dd>
+          <span>{{ docker.username }}</span>
+        </dd>
+        <dt><span jhiTranslate="monolithicauthtestApp.docker.repoName">Repo Name</span></dt>
+        <dd>
+          <span>{{ docker.repoName }}</span>
+        </dd>
+        <dt><span jhiTranslate="monolithicauthtestApp.docker.url">Url</span></dt>
+        <dd>
+          <span>{{ docker.url }}</span>
+        </dd>
+      </dl>
+
+      <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+        <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+      </button>
+
+      <button type="button" [routerLink]="['/docker', docker.id, 'edit']" class="btn btn-primary">
+        <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
+      </button>
+    </div>
+  </div>
+</div>

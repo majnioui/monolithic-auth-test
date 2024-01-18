@@ -14,6 +14,11 @@ import { RouterModule } from '@angular/router';
         data: { pageTitle: 'monolithicauthtestApp.gitrep.home.title' },
         loadChildren: () => import('./gitrep/gitrep.routes'),
       },
+      {
+        path: 'docker',
+        data: { pageTitle: 'monolithicauthtestApp.docker.home.title' },
+        loadChildren: () => import('./docker/docker.routes'),
+      },
       /* jhipster-needle-add-entity-route - JHipster will add entity modules routes here */
     ]),
   ],
