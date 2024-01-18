@@ -88,19 +88,16 @@ public class AuthorizationController {
         );
 
         Gitrep gitrep;
-        if (existingGitrep.isPresent()) {
-            // Update the existing entity
-            gitrep = existingGitrep.get();
-            gitrep.setClientUrl(clientUrl);
-        } else {
-            // Create a new entity if it doesn't exist
-            gitrep = new Gitrep();
-            gitrep.setClientid(clientId);
-            gitrep.setAccesstoken("XXX"); // Just a tweak we temporary fill it with xxx it will be updated when authorizing
-            gitrep.setClientUrl(clientUrl);
-            gitrep.setPlatformType(Gitrep.PlatformType.valueOf(platformType.toUpperCase()));
-        }
+        gitrep =
+            existingGitrep.orElseGet(() -> {
+                Gitrep newGitrep = new Gitrep();
+                newGitrep.setClientid(clientId);
+                newGitrep.setAccesstoken("XXX"); // Temporary value
+                newGitrep.setPlatformType(Gitrep.PlatformType.valueOf(platformType.toUpperCase()));
+                return newGitrep;
+            });
 
+        gitrep.setClientUrl(clientUrl);
         gitrepRepository.save(gitrep);
         return ResponseEntity.ok().build();
     }

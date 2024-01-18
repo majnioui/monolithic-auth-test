@@ -64,17 +64,17 @@ public class AuthorizationService {
     public void updateAccessTokenAndUsername(String clientId, String accessToken, PlatformType platformType, String username) {
         Optional<Gitrep> existingGitrep = gitrepRepository.findByClientidAndPlatformType(clientId, platformType);
         Gitrep gitrep;
-        if (existingGitrep.isPresent()) {
-            gitrep = existingGitrep.get();
-            gitrep.setAccesstoken(accessToken);
-            gitrep.setUsername(username);
-        } else {
-            gitrep = new Gitrep();
-            gitrep.setClientid(clientId);
-            gitrep.setAccesstoken(accessToken);
-            gitrep.setUsername(username);
-            gitrep.setPlatformType(platformType);
-        }
+        gitrep =
+            existingGitrep.orElseGet(() -> {
+                Gitrep newGitrep = new Gitrep();
+                newGitrep.setClientid(clientId);
+                newGitrep.setPlatformType(platformType);
+                // Set any other default values for newGitrep
+                return newGitrep;
+            });
+
+        gitrep.setAccesstoken(accessToken);
+        gitrep.setUsername(username);
         log.info("Updating Gitrep for clientId: {}, platformType: {}", clientId, platformType);
         gitrepRepository.save(gitrep);
     }
