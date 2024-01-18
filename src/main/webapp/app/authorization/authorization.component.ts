@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { AccountService } from 'app/core/auth/account.service';
 import { AuthorizationService } from '../services/authorization.service';
 import { Account } from 'app/core/auth/account.model';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-test-github',
@@ -18,9 +19,17 @@ export class AuthorizationComponent implements OnInit {
   account: Account | null = null;
   userLogin: string | null = null;
 
+  selectedGithubRepo: string | null = null;
+  suggestedBuildpack: string | null = null;
+  selectedRepo: string | null = null;
+  customBuildCommand: string = '';
+  isBuildSuccessful: boolean = false;
+
   constructor(
     private accountService: AccountService,
     private AuthorizationService: AuthorizationService,
+    private cdr: ChangeDetectorRef,
+    private http: HttpClient,
   ) {}
 
   ngOnInit() {
@@ -99,5 +108,102 @@ export class AuthorizationComponent implements OnInit {
       default:
         return false;
     }
+  }
+
+  onRepoSelected() {
+    if (this.selectedRepo && this.userLogin && this.platform) {
+      this.AuthorizationService.getSuggestedBuildpack(this.selectedRepo, this.userLogin, this.platform.toUpperCase()).subscribe({
+        next: response => {
+          this.suggestedBuildpack = response.buildpack;
+          this.cloneSelectedRepository();
+          this.cdr.detectChanges();
+        },
+        error: error => {
+          console.error('Error fetching suggested buildpack:', error);
+          this.suggestedBuildpack = null;
+        },
+      });
+    } else {
+      console.error('Repository name, user login, or platform is missing');
+      this.suggestedBuildpack = null;
+    }
+  }
+
+  private cloneSelectedRepository() {
+    if (this.selectedRepo && this.userLogin && this.platform) {
+      this.AuthorizationService.cloneRepository(this.selectedRepo, this.userLogin, this.platform).subscribe({
+        next: () => console.log('Repository cloning started'),
+        error: error => console.error('Error cloning repository:', error),
+      });
+    } else {
+      console.error('Repository name, user login, or platform is missing');
+    }
+  }
+
+  // Method to get the repository list based on the selected platform
+  getRepositoryList() {
+    switch (this.platform) {
+      case 'github':
+        return this.githubRepositories;
+      case 'gitlab':
+        return this.gitlabRepositories;
+      case 'bitbucket':
+        return this.bitbucketRepositories;
+      default:
+        return [];
+    }
+  }
+
+  // Method to handle the custom build command execution
+  executeCustomBuildCommand() {
+    if (this.selectedRepo && this.userLogin && this.platform && this.customBuildCommand) {
+      this.AuthorizationService.executeBuildCommand(
+        this.selectedRepo,
+        this.userLogin,
+        this.platform.toUpperCase(),
+        this.customBuildCommand,
+      ).subscribe({
+        next: response => {
+          console.log('Command execution started');
+          this.isBuildSuccessful = true; // Set to true when build is successful
+          // Handle response if needed
+        },
+        error: error => {
+          console.error('Error executing command:', error);
+          this.isBuildSuccessful = false; // Set to false if the build fails
+        },
+      });
+    } else {
+      console.error('Missing information for command execution');
+      this.isBuildSuccessful = false;
+    }
+  }
+
+  // Method to to trigger push to registry
+  pushImageToRegistry() {
+    if (this.isBuildSuccessful) {
+      const imageName = 'rkube-' + this.getFormattedDateTime();
+      this.AuthorizationService.pushToRegistry(imageName).subscribe({
+        next: () => {
+          console.log('Image pushed to registry successfully');
+          // Handle successful push
+        },
+        error: error => {
+          console.error('Error pushing image to registry:', error);
+          // Handle errors here
+        },
+      });
+    } else {
+      console.error('Image build was not successful or missing parameters. Cannot push to registry.');
+    }
+  }
+
+  // Helper method to get the formatted date for the image name
+  private getFormattedDateTime(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const day = now.getDate().toString().padStart(2, '0');
+    return `${year}${month}${day}`;
   }
 }

@@ -1,0 +1,26 @@
+{
+  "monolithicauthtestApp": {
+    "docker": {
+      "home": {
+        "title": "Dockers",
+        "refreshListLabel": "Actualiser la liste",
+        "createLabel": "Créer un nouveau Docker",
+        "createOrEditLabel": "Créer ou éditer un Docker",
+        "notFound": "Aucun Docker trouvé"
+      },
+      "created": "Un nouveau Docker a été créé avec l'identifiant {{ param }}",
+      "updated": "Le Docker avec l'identifiant {{ param }} a été mis à jour",
+      "deleted": "Le Docker avec l'identifiant {{ param }} a été supprimé",
+      "delete": {
+        "question": "Êtes-vous certain de vouloir supprimer le Docker {{ id }} ?"
+      },
+      "detail": {
+        "title": "Docker"
+      },
+      "id": "ID",
+      "username": "Username",
+      "repoName": "Repo Name",
+      "url": "Url"
+    }
+  }
+}

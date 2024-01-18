@@ -9,7 +9,8 @@
         "main": "Entités",
         "jhipster-needle-menu-add-entry": "JHipster will add additional entities here (do not translate!)",
         "client": "Client",
-        "gitrep": "Gitrep"
+        "gitrep": "Gitrep",
+        "docker": "Docker"
       },
       "account": {
         "main": "Compte",

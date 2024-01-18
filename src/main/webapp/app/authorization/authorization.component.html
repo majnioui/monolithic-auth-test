@@ -42,5 +42,20 @@
         Click on <a [href]="'/authorize-' + platform" class="btn btn-link">Refresh</a> if the repo is recently added.
       </small>
     </p>
+
+    <!-- Unified Repository List -->
+    <select *ngIf="getRepositoryList().length > 0" class="form-select mt-3" [(ngModel)]="selectedRepo" (change)="onRepoSelected()">
+      <option *ngFor="let repo of getRepositoryList()" [value]="repo.name">{{ repo.name }}</option>
+    </select>
+
+    <!-- Suggested Buildpack -->
+    <div *ngIf="selectedRepo">
+      <p class="mt-3">{{ suggestedBuildpack }}</p>
+      <input type="text" class="form-control mt-3" placeholder="Your build pack" [(ngModel)]="customBuildCommand" />
+      <button class="btn btn-primary mt-2" (click)="executeCustomBuildCommand()">Build</button>
+
+      <!-- Push button, visible only after a successful build -->
+      <button *ngIf="isBuildSuccessful" class="btn btn-secondary mt-2" (click)="pushImageToRegistry()">Push</button>
+    </div>
   </div>
 </div>

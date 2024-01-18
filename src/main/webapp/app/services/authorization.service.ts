@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -22,5 +22,30 @@ export class AuthorizationService {
 
   saveClientUrl(clientUrl: string, platformType: string): Observable<any> {
     return this.http.post('/api/save-client-url', { clientUrl, platformType });
+  }
+
+  getSuggestedBuildpack(repoName: string, userLogin: string, platformType: string): Observable<any> {
+    return this.http.get<any>(`/suggest-buildpack?repoName=${repoName}&userLogin=${userLogin}&platformType=${platformType}`);
+  }
+
+  cloneRepository(repoName: string, userLogin: string, platformType: string): Observable<any> {
+    const params = new HttpParams().set('repoName', repoName).set('userLogin', userLogin).set('platformType', platformType);
+    return this.http.post('/clone-repo', null, { params });
+  }
+
+  executeBuildCommand(repoName: string, userLogin: string, platformType: string, command: string): Observable<any> {
+    const params = new HttpParams()
+      .set('repoName', repoName)
+      .set('userLogin', userLogin)
+      .set('platformType', platformType)
+      .set('command', command);
+
+    return this.http.post<any>('/execute-build-command', null, { params });
+  }
+
+  pushToRegistry(imageName: string): Observable<any> {
+    const params = new HttpParams().set('imageName', imageName);
+
+    return this.http.post('/push-to-registry', null, { params });
   }
 }
