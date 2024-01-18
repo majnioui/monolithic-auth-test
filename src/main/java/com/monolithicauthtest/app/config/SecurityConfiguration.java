@@ -76,6 +76,7 @@ public class SecurityConfiguration {
                     .requestMatchers(mvc.pattern("/gitlab/repositories")).permitAll()
                     .requestMatchers(mvc.pattern("/suggest-buildpack")).permitAll()
                     .requestMatchers(mvc.pattern("/clone-repo")).permitAll()
+                    .requestMatchers(mvc.pattern("/docker-entities")).permitAll()
                     .requestMatchers(mvc.pattern("/push-to-registry")).permitAll()
                     .requestMatchers(mvc.pattern("/execute-build-command")).permitAll()
                     .requestMatchers(mvc.pattern("/bitbucket/repositories")).permitAll()

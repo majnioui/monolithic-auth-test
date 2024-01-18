@@ -194,6 +194,11 @@ public class BuildService {
         log.info("Image saved successfully as a .tar file in {}", tarFilePath);
     }
 
+    // Method to fetch all Docker entities
+    public List<Docker> getAllDockerEntities() {
+        return dockerRepository.findAll();
+    }
+
     public void pushImageToRegistry(String imageName, String dockerHubUsername, String repositoryName)
         throws IOException, InterruptedException {
         imageName = imageName.toLowerCase(); // Convert imageName to lowercase

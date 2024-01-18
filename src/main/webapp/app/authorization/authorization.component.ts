@@ -3,6 +3,7 @@ import { AccountService } from 'app/core/auth/account.service';
 import { AuthorizationService } from '../services/authorization.service';
 import { Account } from 'app/core/auth/account.model';
 import { HttpClient } from '@angular/common/http';
+import { IDocker } from 'app/entities/docker/docker.model';
 
 @Component({
   selector: 'app-test-github',
@@ -26,6 +27,8 @@ export class AuthorizationComponent implements OnInit {
   isBuildSuccessful: boolean = false;
   dockerHubUsername: string = '';
   dockerRepoName: string = '';
+  dockerEntities: IDocker[] = [];
+  selectedDockerEntity: IDocker | null = null;
 
   constructor(
     private accountService: AccountService,
@@ -40,6 +43,7 @@ export class AuthorizationComponent implements OnInit {
       this.userLogin = account?.login || null;
       this.getGithubRepositories();
       this.getBitbucketRepositories();
+      this.fetchDockerEntities();
     });
   }
 
@@ -181,18 +185,29 @@ export class AuthorizationComponent implements OnInit {
     }
   }
 
+  fetchDockerEntities() {
+    this.http.get<IDocker[]>('/docker-entities').subscribe({
+      next: entities => {
+        this.dockerEntities = entities;
+      },
+      error: error => console.error('Error fetching Docker entities:', error),
+    });
+  }
+
   // Method to to trigger push to registry
   pushImageToRegistry(dockerHubUsername: string, dockerRepoName: string) {
-    if (this.isBuildSuccessful) {
+    // Use either the selected entity values or the manually entered values
+    const username = this.selectedDockerEntity?.username || dockerHubUsername;
+    const repoName = this.selectedDockerEntity?.repoName || dockerRepoName;
+
+    if (this.isBuildSuccessful && username && repoName) {
       const imageName = 'rkube-' + this.getFormattedDateTime();
-      this.AuthorizationService.pushToRegistry(imageName, dockerHubUsername, dockerRepoName).subscribe({
+      this.AuthorizationService.pushToRegistry(imageName, username, repoName).subscribe({
         next: () => {
           console.log('Image pushed to registry successfully');
-          // Handle successful push
         },
         error: error => {
           console.error('Error pushing image to registry:', error);
-          // Handle errors here
         },
       });
     } else {

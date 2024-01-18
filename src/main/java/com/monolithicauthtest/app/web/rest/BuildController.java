@@ -1,9 +1,12 @@
 package com.monolithicauthtest.app.web.rest;
 
+import com.monolithicauthtest.app.domain.Docker;
 import com.monolithicauthtest.app.domain.Gitrep;
 import com.monolithicauthtest.app.service.BuildService;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
@@ -74,6 +77,17 @@ public class BuildController {
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException | GitAPIException | InterruptedException | IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error executing build command: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/docker-entities")
+    public ResponseEntity<List<Docker>> getAllDockerEntities() {
+        try {
+            List<Docker> dockerEntities = buildService.getAllDockerEntities();
+            return ResponseEntity.ok(dockerEntities);
+        } catch (Exception e) {
+            // Logging and error handling
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<>());
         }
     }
 
