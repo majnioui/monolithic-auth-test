@@ -1,7 +1,9 @@
 package com.monolithicauthtest.app.service;
 
+import com.monolithicauthtest.app.domain.Docker;
 import com.monolithicauthtest.app.domain.Gitrep;
 import com.monolithicauthtest.app.domain.User;
+import com.monolithicauthtest.app.repository.DockerRepository;
 import com.monolithicauthtest.app.repository.GitrepRepository;
 import com.monolithicauthtest.app.repository.UserRepository;
 import java.io.BufferedReader;
@@ -35,12 +37,19 @@ public class BuildService {
     private final AuthorizationService authorizationService;
     private final UserRepository userRepository;
     private final GitrepRepository gitrepRepository;
+    private final DockerRepository dockerRepository;
 
-    public BuildService(AuthorizationService authorizationService, UserRepository userRepository, GitrepRepository gitrepRepository) {
+    public BuildService(
+        AuthorizationService authorizationService,
+        UserRepository userRepository,
+        GitrepRepository gitrepRepository,
+        DockerRepository dockerRepository
+    ) {
         this.authorizationService = authorizationService;
         this.userRepository = userRepository;
         this.gitrepRepository = gitrepRepository;
         this.restTemplate = new RestTemplate();
+        this.dockerRepository = dockerRepository;
     }
 
     public String suggestBuildpack(String repoName, String userLogin, Gitrep.PlatformType platformType)
@@ -204,6 +213,11 @@ public class BuildService {
         while ((line = reader.readLine()) != null) {
             log.info(line); // Log each line of the output
         }
+
+        Docker docker = new Docker();
+        docker.setUsername(dockerHubUsername);
+        docker.setRepoName(repositoryName);
+        dockerRepository.save(docker);
 
         int tagExitCode = tagProcess.waitFor();
         if (tagExitCode != 0) {
