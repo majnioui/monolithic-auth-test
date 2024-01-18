@@ -155,7 +155,7 @@ public class BuildService {
         String tarFilePath = System.getProperty("user.dir") + File.separator + "rkube-" + date + ".tar";
 
         // Save the image as a .tar file
-        String saveCommand = "docker save -o " + tarFilePath + " rkube-" + date;
+        String saveCommand = "sudo docker save -o " + tarFilePath + " rkube-" + date;
         processBuilder.command("bash", "-c", saveCommand);
         Process saveProcess = processBuilder.start();
 

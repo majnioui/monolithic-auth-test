@@ -44,7 +44,7 @@ export class AuthorizationService {
   }
 
   pushToRegistry(imageName: string, username: string, repoName: string) {
-    const url = '/api/push-to-registry';
+    const url = '/push-to-registry';
     const params = new HttpParams().set('imageName', imageName).set('dockerHubUsername', username).set('repositoryName', repoName);
     return this.http.post(url, params);
   }
