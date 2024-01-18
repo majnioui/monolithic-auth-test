@@ -54,8 +54,14 @@
       <input type="text" class="form-control mt-3" placeholder="Your build pack" [(ngModel)]="customBuildCommand" />
       <button class="btn btn-primary mt-2" (click)="executeCustomBuildCommand()">Build</button>
 
-      <!-- Push button, visible only after a successful build -->
-      <button *ngIf="isBuildSuccessful" class="btn btn-secondary mt-2" (click)="pushImageToRegistry()">Push</button>
+      <!-- Inputs for Docker Hub Username and Repository Name -->
+      <div *ngIf="isBuildSuccessful">
+        <input type="text" class="form-control mt-3" placeholder="Docker Hub Username" [(ngModel)]="dockerHubUsername" />
+        <input type="text" class="form-control mt-3" placeholder="Repository Name" [(ngModel)]="dockerRepoName" />
+
+        <!-- Push Button -->
+        <button class="btn btn-secondary mt-2" (click)="pushImageToRegistry(dockerHubUsername, dockerRepoName)">Push</button>
+      </div>
     </div>
   </div>
 </div>

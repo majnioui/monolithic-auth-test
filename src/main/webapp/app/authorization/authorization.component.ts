@@ -24,6 +24,8 @@ export class AuthorizationComponent implements OnInit {
   selectedRepo: string | null = null;
   customBuildCommand: string = '';
   isBuildSuccessful: boolean = false;
+  dockerHubUsername: string = '';
+  dockerRepoName: string = '';
 
   constructor(
     private accountService: AccountService,
@@ -181,9 +183,9 @@ export class AuthorizationComponent implements OnInit {
 
   // Method to to trigger push to registry
   pushImageToRegistry() {
-    if (this.isBuildSuccessful) {
+    if (this.isBuildSuccessful && this.dockerHubUsername && this.dockerRepoName) {
       const imageName = 'rkube-' + this.getFormattedDateTime();
-      this.AuthorizationService.pushToRegistry(imageName).subscribe({
+      this.AuthorizationService.pushToRegistry(imageName, this.dockerHubUsername, this.dockerRepoName).subscribe({
         next: () => {
           console.log('Image pushed to registry successfully');
           // Handle successful push
@@ -194,7 +196,7 @@ export class AuthorizationComponent implements OnInit {
         },
       });
     } else {
-      console.error('Image build was not successful or missing parameters. Cannot push to registry.');
+      console.error('Image build was not successful, or username/repository name is missing. Cannot push to registry.');
     }
   }
 

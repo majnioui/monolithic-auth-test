@@ -43,9 +43,9 @@ export class AuthorizationService {
     return this.http.post<any>('/execute-build-command', null, { params });
   }
 
-  pushToRegistry(imageName: string): Observable<any> {
-    const params = new HttpParams().set('imageName', imageName);
-
-    return this.http.post('/push-to-registry', null, { params });
+  pushToRegistry(imageName: string, username: string, repoName: string) {
+    const url = '/api/push-to-registry';
+    const params = new HttpParams().set('imageName', imageName).set('dockerHubUsername', username).set('repositoryName', repoName);
+    return this.http.post(url, params);
   }
 }

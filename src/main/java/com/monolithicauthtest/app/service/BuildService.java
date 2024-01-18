@@ -185,9 +185,8 @@ public class BuildService {
         log.info("Image saved successfully as a .tar file in {}", tarFilePath);
     }
 
-    public void pushImageToRegistry(String imageName) throws IOException, InterruptedException {
-        String dockerHubUsername = "majnioui"; // Your Docker Hub username
-        String repositoryName = "testingmoe"; // Your Docker Hub repository name
+    public void pushImageToRegistry(String imageName, String dockerHubUsername, String repositoryName)
+        throws IOException, InterruptedException {
         imageName = imageName.toLowerCase(); // Convert imageName to lowercase
         String taggedImageName = dockerHubUsername + "/" + repositoryName + ":" + imageName;
 
