@@ -182,10 +182,10 @@ export class AuthorizationComponent implements OnInit {
   }
 
   // Method to to trigger push to registry
-  pushImageToRegistry() {
-    if (this.isBuildSuccessful && this.dockerHubUsername && this.dockerRepoName) {
+  pushImageToRegistry(dockerHubUsername: string, dockerRepoName: string) {
+    if (this.isBuildSuccessful) {
       const imageName = 'rkube-' + this.getFormattedDateTime();
-      this.AuthorizationService.pushToRegistry(imageName, this.dockerHubUsername, this.dockerRepoName).subscribe({
+      this.AuthorizationService.pushToRegistry(imageName, dockerHubUsername, dockerRepoName).subscribe({
         next: () => {
           console.log('Image pushed to registry successfully');
           // Handle successful push
@@ -196,7 +196,7 @@ export class AuthorizationComponent implements OnInit {
         },
       });
     } else {
-      console.error('Image build was not successful, or username/repository name is missing. Cannot push to registry.');
+      console.error('Image build was not successful or missing parameters. Cannot push to registry.');
     }
   }
 
