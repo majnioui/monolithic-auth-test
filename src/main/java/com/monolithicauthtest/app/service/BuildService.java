@@ -6,6 +6,7 @@ import com.monolithicauthtest.app.domain.User;
 import com.monolithicauthtest.app.repository.DockerRepository;
 import com.monolithicauthtest.app.repository.GitrepRepository;
 import com.monolithicauthtest.app.repository.UserRepository;
+import com.monolithicauthtest.app.security.SecurityUtils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -259,7 +260,13 @@ public class BuildService {
     }
 
     private String getGithubRepoCloneUrl(String username, String repoName, String accessToken) {
-        String repoApiUrl = "https://api.github.com/repos/" + username + "/" + repoName;
+        // Retrieve the Gitrep entity
+        String clientId = getCurrentUserId();
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType(clientId, Gitrep.PlatformType.GITHUB);
+        // Use the URL from Gitrep or fallback to the default GitHub URL
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("https://api.github.com");
+        String repoApiUrl = baseUrl + (baseUrl.endsWith("/") ? "" : "/") + "repos/" + username + "/" + repoName;
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "token " + accessToken);
         HttpEntity<String> request = new HttpEntity<>(headers);
@@ -283,7 +290,13 @@ public class BuildService {
     }
 
     private int getGitlabProjectId(String username, String repoName, String accessToken) {
-        String projectsApiUrl = "http://192.168.100.130/api/v4/users/" + username + "/projects";
+        // Retrieve the Gitrep entity
+        String clientId = getCurrentUserId();
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType(clientId, Gitrep.PlatformType.GITLAB);
+        // Use the URL from Gitrep or fallback to the default GitLab URL
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130");
+        String projectsApiUrl = baseUrl + (baseUrl.endsWith("/") ? "" : "/") + "api/v4/users/" + username + "/projects";
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
         HttpEntity<String> request = new HttpEntity<>(headers);
@@ -313,7 +326,13 @@ public class BuildService {
     }
 
     private String getGitlabRepoCloneUrl(int projectId, String accessToken) {
-        String repoApiUrl = "http://192.168.100.130/api/v4/projects/" + projectId;
+        // Retrieve the Gitrep entity
+        String clientId = getCurrentUserId();
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType(clientId, Gitrep.PlatformType.GITLAB);
+        // Use the URL from Gitrep or fallback to the default GitLab URL
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130");
+        String repoApiUrl = baseUrl + (baseUrl.endsWith("/") ? "" : "/") + "api/v4/projects/" + projectId;
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
         HttpEntity<String> request = new HttpEntity<>(headers);
@@ -334,7 +353,13 @@ public class BuildService {
     }
 
     private String getBitbucketRepoCloneUrl(String username, String repoName, String accessToken) {
-        String repoApiUrl = "https://api.bitbucket.org/2.0/repositories/mo-flow-test/" + repoName;
+        // Retrieve the Gitrep entity
+        String clientId = getCurrentUserId();
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType(clientId, Gitrep.PlatformType.BITBUCKET);
+        // Use the URL from Gitrep or fallback to the default Bitbucket URL
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("https://api.bitbucket.org/2.0");
+        String repoApiUrl = baseUrl + (baseUrl.endsWith("/") ? "" : "/") + "repositories/" + username + "/" + repoName;
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
         HttpEntity<String> request = new HttpEntity<>(headers);
@@ -369,6 +394,16 @@ public class BuildService {
         return gitrepOpt
             .map(Gitrep::getUsername)
             .orElseThrow(() -> new IllegalStateException("Username not found for userId: " + userId + " and platform: " + platformType));
+    }
+
+    // Getting the current logged in user ID directly.
+    private String getCurrentUserId() {
+        return SecurityUtils
+            .getCurrentUserLogin()
+            .flatMap(userRepository::findOneByLogin)
+            .map(User::getId)
+            .map(String::valueOf)
+            .orElse(null);
     }
 
     private void cloneRepository(String repoUrl, String repoName, String accessToken, Gitrep.PlatformType platformType)
