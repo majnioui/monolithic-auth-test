@@ -56,14 +56,12 @@
 
       <!-- Dropdowns for selecting existing Docker entities -->
       <div *ngIf="isBuildSuccessful">
-        <!-- Dropdown for selecting existing Docker entities -->
         <select class="form-select mt-3" [(ngModel)]="selectedDockerEntity">
-          <option *ngFor="let entity of dockerEntities" [ngValue]="entity">{{ entity.username }} / {{ entity.repoName }}</option>
+          <option *ngFor="let entity of dockerEntities" [ngValue]="entity">{{ entity.username }}/{{ entity.repoName }}</option>
         </select>
         <!-- Inputs for manual entry -->
         <input type="text" class="form-control mt-3" placeholder="Docker Hub Username" [(ngModel)]="dockerHubUsername" />
         <input type="text" class="form-control mt-3" placeholder="Repository Name" [(ngModel)]="dockerRepoName" />
-
         <!-- Push Button -->
         <button
           class="btn btn-secondary mt-2"
@@ -74,7 +72,7 @@
             )
           "
         >
-          Push
+          Push to registry
         </button>
       </div>
     </div>

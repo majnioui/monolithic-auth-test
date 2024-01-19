@@ -201,7 +201,7 @@ export class AuthorizationComponent implements OnInit {
     const repoName = this.selectedDockerEntity?.repoName || dockerRepoName;
 
     if (this.isBuildSuccessful && username && repoName) {
-      const imageName = 'rkube-' + this.getFormattedDateTime();
+      const imageName = 'rkube-' + this.getFormattedDateTime(); // hardcoded the prefix rkube but it can be anything depends on the use case.
       this.AuthorizationService.pushToRegistry(imageName, username, repoName).subscribe({
         next: () => {
           console.log('Image pushed to registry successfully');
