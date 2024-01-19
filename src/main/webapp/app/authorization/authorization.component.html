@@ -54,8 +54,29 @@
       <input type="text" class="form-control mt-3" placeholder="Your build pack" [(ngModel)]="customBuildCommand" />
       <button class="btn btn-primary mt-2" (click)="executeCustomBuildCommand()">Build</button>
 
-      <!-- Push button, visible only after a successful build -->
-      <button *ngIf="isBuildSuccessful" class="btn btn-secondary mt-2" (click)="pushImageToRegistry()">Push</button>
+      <!-- Dropdowns for selecting existing Docker entities -->
+      <div *ngIf="isBuildSuccessful">
+        <!-- Dropdown for selecting existing Docker entities -->
+        <select class="form-select mt-3" [(ngModel)]="selectedDockerEntity">
+          <option *ngFor="let entity of dockerEntities" [ngValue]="entity">{{ entity.username }} / {{ entity.repoName }}</option>
+        </select>
+        <!-- Inputs for manual entry -->
+        <input type="text" class="form-control mt-3" placeholder="Docker Hub Username" [(ngModel)]="dockerHubUsername" />
+        <input type="text" class="form-control mt-3" placeholder="Repository Name" [(ngModel)]="dockerRepoName" />
+
+        <!-- Push Button -->
+        <button
+          class="btn btn-secondary mt-2"
+          (click)="
+            pushImageToRegistry(
+              dockerHubUsername || selectedDockerEntity?.username || '',
+              dockerRepoName || selectedDockerEntity?.repoName || ''
+            )
+          "
+        >
+          Push
+        </button>
+      </div>
     </div>
   </div>
 </div>

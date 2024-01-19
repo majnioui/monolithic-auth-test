@@ -1,9 +1,12 @@
 package com.monolithicauthtest.app.service;
 
+import com.monolithicauthtest.app.domain.Docker;
 import com.monolithicauthtest.app.domain.Gitrep;
 import com.monolithicauthtest.app.domain.User;
+import com.monolithicauthtest.app.repository.DockerRepository;
 import com.monolithicauthtest.app.repository.GitrepRepository;
 import com.monolithicauthtest.app.repository.UserRepository;
+import com.monolithicauthtest.app.security.SecurityUtils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -35,12 +38,19 @@ public class BuildService {
     private final AuthorizationService authorizationService;
     private final UserRepository userRepository;
     private final GitrepRepository gitrepRepository;
+    private final DockerRepository dockerRepository;
 
-    public BuildService(AuthorizationService authorizationService, UserRepository userRepository, GitrepRepository gitrepRepository) {
+    public BuildService(
+        AuthorizationService authorizationService,
+        UserRepository userRepository,
+        GitrepRepository gitrepRepository,
+        DockerRepository dockerRepository
+    ) {
         this.authorizationService = authorizationService;
         this.userRepository = userRepository;
         this.gitrepRepository = gitrepRepository;
         this.restTemplate = new RestTemplate();
+        this.dockerRepository = dockerRepository;
     }
 
     public String suggestBuildpack(String repoName, String userLogin, Gitrep.PlatformType platformType)
@@ -155,7 +165,7 @@ public class BuildService {
         String tarFilePath = System.getProperty("user.dir") + File.separator + "rkube-" + date + ".tar";
 
         // Save the image as a .tar file
-        String saveCommand = "docker save -o " + tarFilePath + " rkube-" + date;
+        String saveCommand = "sudo docker save -o " + tarFilePath + " rkube-" + date;
         processBuilder.command("bash", "-c", saveCommand);
         Process saveProcess = processBuilder.start();
 
@@ -185,9 +195,13 @@ public class BuildService {
         log.info("Image saved successfully as a .tar file in {}", tarFilePath);
     }
 
-    public void pushImageToRegistry(String imageName) throws IOException, InterruptedException {
-        String dockerHubUsername = "majnioui"; // Your Docker Hub username
-        String repositoryName = "testingmoe"; // Your Docker Hub repository name
+    // Method to fetch all Docker entities
+    public List<Docker> getAllDockerEntities() {
+        return dockerRepository.findAll();
+    }
+
+    public void pushImageToRegistry(String imageName, String dockerHubUsername, String repositoryName)
+        throws IOException, InterruptedException {
         imageName = imageName.toLowerCase(); // Convert imageName to lowercase
         String taggedImageName = dockerHubUsername + "/" + repositoryName + ":" + imageName;
 
@@ -205,6 +219,11 @@ public class BuildService {
         while ((line = reader.readLine()) != null) {
             log.info(line); // Log each line of the output
         }
+
+        Docker docker = new Docker();
+        docker.setUsername(dockerHubUsername);
+        docker.setRepoName(repositoryName);
+        dockerRepository.save(docker);
 
         int tagExitCode = tagProcess.waitFor();
         if (tagExitCode != 0) {
@@ -241,7 +260,13 @@ public class BuildService {
     }
 
     private String getGithubRepoCloneUrl(String username, String repoName, String accessToken) {
-        String repoApiUrl = "https://api.github.com/repos/" + username + "/" + repoName;
+        // Retrieve the Gitrep entity
+        String clientId = getCurrentUserId();
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType(clientId, Gitrep.PlatformType.GITHUB);
+        // Use the URL from Gitrep or fallback to the default GitHub URL
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("https://api.github.com");
+        String repoApiUrl = baseUrl + (baseUrl.endsWith("/") ? "" : "/") + "repos/" + username + "/" + repoName;
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "token " + accessToken);
         HttpEntity<String> request = new HttpEntity<>(headers);
@@ -265,7 +290,13 @@ public class BuildService {
     }
 
     private int getGitlabProjectId(String username, String repoName, String accessToken) {
-        String projectsApiUrl = "http://192.168.100.130/api/v4/users/" + username + "/projects";
+        // Retrieve the Gitrep entity
+        String clientId = getCurrentUserId();
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType(clientId, Gitrep.PlatformType.GITLAB);
+        // Use the URL from Gitrep or fallback to the default GitLab URL
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130");
+        String projectsApiUrl = baseUrl + (baseUrl.endsWith("/") ? "" : "/") + "api/v4/users/" + username + "/projects";
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
         HttpEntity<String> request = new HttpEntity<>(headers);
@@ -295,7 +326,13 @@ public class BuildService {
     }
 
     private String getGitlabRepoCloneUrl(int projectId, String accessToken) {
-        String repoApiUrl = "http://192.168.100.130/api/v4/projects/" + projectId;
+        // Retrieve the Gitrep entity
+        String clientId = getCurrentUserId();
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType(clientId, Gitrep.PlatformType.GITLAB);
+        // Use the URL from Gitrep or fallback to the default GitLab URL
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("http://192.168.100.130");
+        String repoApiUrl = baseUrl + (baseUrl.endsWith("/") ? "" : "/") + "api/v4/projects/" + projectId;
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
         HttpEntity<String> request = new HttpEntity<>(headers);
@@ -316,7 +353,13 @@ public class BuildService {
     }
 
     private String getBitbucketRepoCloneUrl(String username, String repoName, String accessToken) {
-        String repoApiUrl = "https://api.bitbucket.org/2.0/repositories/mo-flow-test/" + repoName;
+        // Retrieve the Gitrep entity
+        String clientId = getCurrentUserId();
+        Optional<Gitrep> gitrep = gitrepRepository.findByClientidAndPlatformType(clientId, Gitrep.PlatformType.BITBUCKET);
+        // Use the URL from Gitrep or fallback to the default Bitbucket URL
+        String baseUrl = gitrep.map(Gitrep::getClientUrl).orElse("https://api.bitbucket.org/2.0");
+        String repoApiUrl = baseUrl + (baseUrl.endsWith("/") ? "" : "/") + "repositories/" + username + "/" + repoName;
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
         HttpEntity<String> request = new HttpEntity<>(headers);
@@ -351,6 +394,16 @@ public class BuildService {
         return gitrepOpt
             .map(Gitrep::getUsername)
             .orElseThrow(() -> new IllegalStateException("Username not found for userId: " + userId + " and platform: " + platformType));
+    }
+
+    // Getting the current logged in user ID directly.
+    private String getCurrentUserId() {
+        return SecurityUtils
+            .getCurrentUserLogin()
+            .flatMap(userRepository::findOneByLogin)
+            .map(User::getId)
+            .map(String::valueOf)
+            .orElse(null);
     }
 
     private void cloneRepository(String repoUrl, String repoName, String accessToken, Gitrep.PlatformType platformType)

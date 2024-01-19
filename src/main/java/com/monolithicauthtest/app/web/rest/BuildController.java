@@ -1,9 +1,12 @@
 package com.monolithicauthtest.app.web.rest;
 
+import com.monolithicauthtest.app.domain.Docker;
 import com.monolithicauthtest.app.domain.Gitrep;
 import com.monolithicauthtest.app.service.BuildService;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
@@ -77,10 +80,25 @@ public class BuildController {
         }
     }
 
-    @PostMapping("/push-to-registry")
-    public ResponseEntity<?> pushToRegistry(@RequestParam String imageName) {
+    @GetMapping("/docker-entities")
+    public ResponseEntity<List<Docker>> getAllDockerEntities() {
         try {
-            buildService.pushImageToRegistry(imageName);
+            List<Docker> dockerEntities = buildService.getAllDockerEntities();
+            return ResponseEntity.ok(dockerEntities);
+        } catch (Exception e) {
+            // Logging and error handling
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<>());
+        }
+    }
+
+    @PostMapping("/push-to-registry")
+    public ResponseEntity<?> pushToRegistry(
+        @RequestParam String imageName,
+        @RequestParam String dockerHubUsername,
+        @RequestParam String repositoryName
+    ) {
+        try {
+            buildService.pushImageToRegistry(imageName, dockerHubUsername, repositoryName);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error pushing image to registry: " + e.getMessage());
