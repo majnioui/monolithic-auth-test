@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @Service
+@SuppressWarnings("unchecked")
 public class BuildService {
 
     private static final Logger log = LoggerFactory.getLogger(BuildService.class);
@@ -53,9 +54,10 @@ public class BuildService {
         this.dockerRepository = dockerRepository;
     }
 
+    // Method to suggest the pack builders
     public String suggestBuildpack(String repoName, String userLogin, Gitrep.PlatformType platformType)
         throws GitAPIException, InterruptedException, IOException {
-        // Clone the repository first
+        // Clone the repository first, if already done it will be skipped
         cloneRepositoryForUser(repoName, userLogin, platformType);
 
         // Define the path to the cloned repository
@@ -99,7 +101,7 @@ public class BuildService {
 
         if (repoDir.exists() && repoDir.isDirectory()) {
             log.info("Repository already exists at: {}. Skipping cloning.", repoDirPath);
-            return; // Skip cloning if the directory already exists
+            return; // Skip cloning if the directory already exists (to avoid duplication)
         }
 
         String accessToken = authorizationService.retrieveAccessToken(platformType, getUserIdByLogin(userLogin));
@@ -122,7 +124,7 @@ public class BuildService {
         // Define the path to the cloned repository
         String repoPath = System.getProperty("user.dir") + File.separator + repoName;
 
-        // Format the date and time in the desired format
+        // Format the date in the desired format
         String date = new SimpleDateFormat("yyyyMMdd").format(new Date());
 
         // Construct the full command with the hardcoded part and the variable part
@@ -202,7 +204,7 @@ public class BuildService {
 
     public void pushImageToRegistry(String imageName, String dockerHubUsername, String repositoryName)
         throws IOException, InterruptedException {
-        imageName = imageName.toLowerCase(); // Convert imageName to lowercase
+        imageName = imageName.toLowerCase(); // Convert imageName to lowercase (not needed if the name we willing to use is lowsercase but just to be sure otherwise it will give an error)
         String taggedImageName = dockerHubUsername + "/" + repositoryName + ":" + imageName;
 
         log.info("Starting to tag the image: {}", imageName);

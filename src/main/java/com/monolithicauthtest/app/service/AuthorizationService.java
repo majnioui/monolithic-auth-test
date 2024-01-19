@@ -21,6 +21,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
+@SuppressWarnings("unchecked")
 public class AuthorizationService {
 
     private final Logger log = LoggerFactory.getLogger(AuthorizationService.class);
