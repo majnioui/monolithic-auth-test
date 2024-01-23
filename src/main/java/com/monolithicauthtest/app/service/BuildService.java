@@ -235,8 +235,7 @@ public class BuildService {
 
         // Push the image
         ProcessBuilder pushProcessBuilder = new ProcessBuilder();
-        String pushCommand = registryType.equals("quay") ? "sudo podman push " : "sudo docker push ";
-        pushProcessBuilder.command("bash", "-c", pushCommand + taggedImageName);
+        pushProcessBuilder.command("bash", "-c", "sudo docker push " + taggedImageName);
         Process pushProcess = pushProcessBuilder.start();
         int pushExitCode = pushProcess.waitFor();
         if (pushExitCode != 0) {
