@@ -29,6 +29,7 @@ export class AuthorizationComponent implements OnInit {
   dockerRepoName: string = '';
   dockerEntities: IDocker[] = [];
   selectedDockerEntity: IDocker | null = null;
+  selectedRegistry: 'docker' | 'quay' = 'docker';
 
   constructor(
     private accountService: AccountService,

@@ -202,10 +202,11 @@ public class BuildService {
         return dockerRepository.findAll();
     }
 
-    public void pushImageToRegistry(String imageName, String dockerHubUsername, String repositoryName)
+    public void pushImageToRegistry(String imageName, String username, String repositoryName, String registryType)
         throws IOException, InterruptedException {
-        imageName = imageName.toLowerCase(); // Convert imageName to lowercase (not needed if the name we willing to use is lowsercase but just to be sure otherwise it will give an error)
-        String taggedImageName = dockerHubUsername + "/" + repositoryName + ":" + imageName;
+        imageName = imageName.toLowerCase();
+        String registryPrefix = registryType.equals("quay") ? "quay.io/" : "";
+        String taggedImageName = registryPrefix + username + "/" + repositoryName + ":" + imageName;
 
         log.info("Starting to tag the image: {}", imageName);
 
@@ -222,11 +223,6 @@ public class BuildService {
             log.info(line); // Log each line of the output
         }
 
-        Docker docker = new Docker();
-        docker.setUsername(dockerHubUsername);
-        docker.setRepoName(repositoryName);
-        dockerRepository.save(docker);
-
         int tagExitCode = tagProcess.waitFor();
         if (tagExitCode != 0) {
             log.error("Failed to tag the image. Exit code: {}", tagExitCode);
@@ -234,17 +230,24 @@ public class BuildService {
         } else {
             log.info("Image tagged successfully with name: {}", taggedImageName);
         }
+
         // Push the image
         ProcessBuilder pushProcessBuilder = new ProcessBuilder();
-        pushProcessBuilder.command("bash", "-c", "sudo docker push " + taggedImageName);
+        String pushCommand = registryType.equals("quay") ? "sudo podman push " : "sudo docker push ";
+        pushProcessBuilder.command("bash", "-c", pushCommand + taggedImageName);
         Process pushProcess = pushProcessBuilder.start();
         int pushExitCode = pushProcess.waitFor();
         if (pushExitCode != 0) {
             log.error("Failed to push the image. Exit code: {}", pushExitCode);
             throw new IllegalStateException("Failed to push the image with error code: " + pushExitCode);
         } else {
-            log.info("Image successfully pushed to Docker Hub: {}", taggedImageName);
+            log.info("Image successfully pushed to {}: {}", registryType, taggedImageName);
         }
+        // Save the Docker entity
+        Docker docker = new Docker();
+        docker.setUsername(username);
+        docker.setRepoName(repositoryName);
+        dockerRepository.save(docker);
     }
 
     private String getRepoCloneUrl(Gitrep.PlatformType platformType, String username, String repoName, String accessToken) {
