@@ -196,14 +196,14 @@ export class AuthorizationComponent implements OnInit {
   }
 
   // Method to to trigger push to registry
-  pushImageToRegistry(dockerHubUsername: string, dockerRepoName: string) {
+  pushImageToRegistry(dockerHubUsername: string, dockerRepoName: string, selectedRegistry: string) {
     // Use either the selected entity values or the manually entered values
     const username = this.selectedDockerEntity?.username || dockerHubUsername;
     const repoName = this.selectedDockerEntity?.repoName || dockerRepoName;
 
-    if (this.isBuildSuccessful && username && repoName) {
+    if (this.isBuildSuccessful && username && repoName && selectedRegistry) {
       const imageName = 'rkube-' + this.getFormattedDateTime(); // hardcoded the prefix rkube but it can be anything depends on the use case.
-      this.AuthorizationService.pushToRegistry(imageName, username, repoName).subscribe({
+      this.AuthorizationService.pushToRegistry(imageName, username, repoName, selectedRegistry).subscribe({
         next: () => {
           console.log('Image pushed to registry successfully');
         },
