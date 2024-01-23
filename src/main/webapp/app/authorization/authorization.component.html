@@ -57,7 +57,7 @@
       <!-- Dropdowns for selecting existing Docker entities -->
       <div *ngIf="isBuildSuccessful">
         <!-- Registry Selection Dropdown -->
-        <select class="form-select mt-3" [(ngModel)]="selectedRegistry">
+        <select class="form-select mt-3" [(ngModel)]="selectedRegistry" (change)="onRegistryChange()">
           <option value="docker">Docker Hub</option>
           <option value="quay">Quay.io</option>
         </select>
@@ -66,7 +66,11 @@
           <option *ngFor="let entity of dockerEntities" [ngValue]="entity">{{ entity.username }}/{{ entity.repoName }}</option>
         </select>
         <!-- Inputs for manual entry -->
-        <input type="text" class="form-control mt-3" placeholder="Docker Hub Username" [(ngModel)]="dockerHubUsername" />
+        <!-- Conditional Input Fields -->
+        <div *ngIf="selectedRegistry !== 'quay'">
+          <input type="text" class="form-control mt-3" placeholder="Docker Hub Username" [(ngModel)]="dockerHubUsername" />
+        </div>
+
         <input type="text" class="form-control mt-3" placeholder="Repository Name" [(ngModel)]="dockerRepoName" />
         <!-- Push Button -->
         <button

@@ -215,6 +215,13 @@ export class AuthorizationComponent implements OnInit {
       console.error('Image build was not successful or missing parameters. Cannot push to registry.');
     }
   }
+  onRegistryChange() {
+    if (this.selectedRegistry === 'quay') {
+      this.dockerHubUsername = 'quay.io';
+    } else {
+      this.dockerHubUsername = '';
+    }
+  }
 
   // Helper method to get the formatted date for the image name
   private getFormattedDateTime(): string {
