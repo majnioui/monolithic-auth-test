@@ -205,22 +205,24 @@ public class BuildService {
     public void pushImageToRegistry(String imageName, String username, String repositoryName, String registryType)
         throws IOException, InterruptedException {
         imageName = imageName.toLowerCase();
-        String registryPrefix = registryType.equals("quay") ? "quay.io/" : "";
-        String taggedImageName = registryPrefix + username + "/" + repositoryName + ":" + imageName;
+
+        // Use different separator based on registry type
+        String separator = registryType.equals("quay") ? "/" : ":";
+        String taggedImageName = (registryType.equals("quay") ? "quay.io/" : "") + username + "/" + repositoryName + separator + imageName;
 
         log.info("Starting to tag the image: {}", imageName);
 
         // Tag the image
         ProcessBuilder tagProcessBuilder = new ProcessBuilder();
         tagProcessBuilder.command("bash", "-c", "sudo docker tag " + imageName + " " + taggedImageName);
-        tagProcessBuilder.redirectErrorStream(true); // Redirect error stream to standard output
+        tagProcessBuilder.redirectErrorStream(true);
         Process tagProcess = tagProcessBuilder.start();
 
         // Read the output from the command
         BufferedReader reader = new BufferedReader(new InputStreamReader(tagProcess.getInputStream()));
         String line;
         while ((line = reader.readLine()) != null) {
-            log.info(line); // Log each line of the output
+            log.info(line);
         }
 
         int tagExitCode = tagProcess.waitFor();
@@ -243,6 +245,7 @@ public class BuildService {
         } else {
             log.info("Image successfully pushed to {}: {}", registryType, taggedImageName);
         }
+
         // Save the Docker entity
         Docker docker = new Docker();
         docker.setUsername(username);
