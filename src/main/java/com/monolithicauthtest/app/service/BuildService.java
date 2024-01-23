@@ -208,7 +208,7 @@ public class BuildService {
 
         // Use different separator based on registry type
         String separator = registryType.equals("quay") ? "/" : ":";
-        String taggedImageName = (registryType.equals("quay") ? "quay.io/" : "") + username + "/" + repositoryName + separator + imageName;
+        String taggedImageName = username + "/" + repositoryName + separator + imageName;
 
         log.info("Starting to tag the image: {}", imageName);
 
