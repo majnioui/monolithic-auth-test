@@ -245,11 +245,18 @@ public class BuildService {
             log.info("Image successfully pushed to {}: {}", registryType, taggedImageName);
         }
 
-        // Save the Docker entity
-        Docker docker = new Docker();
-        docker.setUsername(username);
-        docker.setRepoName(repositoryName);
-        dockerRepository.save(docker);
+        // Check if the Docker entity already exists
+        Optional<Docker> existingDocker = dockerRepository.findByUsernameAndRepoName(username, repositoryName);
+        if (!existingDocker.isPresent()) {
+            // Save the Docker entity if it does not exist
+            Docker docker = new Docker();
+            docker.setUsername(username);
+            docker.setRepoName(repositoryName);
+            dockerRepository.save(docker);
+            log.info("Docker entity saved: {} / {}", username, repositoryName);
+        } else {
+            log.info("Docker entity already exists, not saved: {} / {}", username, repositoryName);
+        }
     }
 
     private String getRepoCloneUrl(Gitrep.PlatformType platformType, String username, String repoName, String accessToken) {
