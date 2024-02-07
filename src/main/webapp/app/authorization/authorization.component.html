@@ -56,19 +56,29 @@
 
       <!-- Dropdowns for selecting existing Docker entities -->
       <div *ngIf="isBuildSuccessful">
+        <!-- Registry Selection Dropdown -->
+        <select class="form-select mt-3" [(ngModel)]="selectedRegistry" (change)="onRegistryChange()">
+          <option value="docker">Docker Hub</option>
+          <option value="quay">Quay.io</option>
+        </select>
+        <!-- Registry Selection Dropdown END -->
         <select class="form-select mt-3" [(ngModel)]="selectedDockerEntity">
           <option *ngFor="let entity of dockerEntities" [ngValue]="entity">{{ entity.username }}/{{ entity.repoName }}</option>
         </select>
-        <!-- Inputs for manual entry -->
-        <input type="text" class="form-control mt-3" placeholder="Docker Hub Username" [(ngModel)]="dockerHubUsername" />
-        <input type="text" class="form-control mt-3" placeholder="Repository Name" [(ngModel)]="dockerRepoName" />
+        <!-- Conditional Input Fields -->
+        <div *ngIf="selectedRegistry !== 'quay'">
+          <input type="text" class="form-control mt-3" placeholder="Docker Hub Username" [(ngModel)]="registryUsername" />
+        </div>
+
+        <input type="text" class="form-control mt-3" placeholder="Repository Name" [(ngModel)]="registryRepoName" />
         <!-- Push Button -->
         <button
           class="btn btn-secondary mt-2"
           (click)="
             pushImageToRegistry(
-              dockerHubUsername || selectedDockerEntity?.username || '',
-              dockerRepoName || selectedDockerEntity?.repoName || ''
+              registryUsername || selectedDockerEntity?.username || '',
+              registryRepoName || selectedDockerEntity?.repoName || '',
+              selectedRegistry
             )
           "
         >

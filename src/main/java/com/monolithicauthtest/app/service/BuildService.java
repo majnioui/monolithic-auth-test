@@ -202,30 +202,28 @@ public class BuildService {
         return dockerRepository.findAll();
     }
 
-    public void pushImageToRegistry(String imageName, String dockerHubUsername, String repositoryName)
+    public void pushImageToRegistry(String imageName, String username, String repositoryName, String registryType)
         throws IOException, InterruptedException {
-        imageName = imageName.toLowerCase(); // Convert imageName to lowercase (not needed if the name we willing to use is lowsercase but just to be sure otherwise it will give an error)
-        String taggedImageName = dockerHubUsername + "/" + repositoryName + ":" + imageName;
+        imageName = imageName.toLowerCase();
+
+        // Use different separator based on registry type
+        String separator = registryType.equals("quay") ? "/" : ":";
+        String taggedImageName = username + "/" + repositoryName + separator + imageName;
 
         log.info("Starting to tag the image: {}", imageName);
 
         // Tag the image
         ProcessBuilder tagProcessBuilder = new ProcessBuilder();
         tagProcessBuilder.command("bash", "-c", "sudo docker tag " + imageName + " " + taggedImageName);
-        tagProcessBuilder.redirectErrorStream(true); // Redirect error stream to standard output
+        tagProcessBuilder.redirectErrorStream(true);
         Process tagProcess = tagProcessBuilder.start();
 
         // Read the output from the command
         BufferedReader reader = new BufferedReader(new InputStreamReader(tagProcess.getInputStream()));
         String line;
         while ((line = reader.readLine()) != null) {
-            log.info(line); // Log each line of the output
+            log.info(line);
         }
-
-        Docker docker = new Docker();
-        docker.setUsername(dockerHubUsername);
-        docker.setRepoName(repositoryName);
-        dockerRepository.save(docker);
 
         int tagExitCode = tagProcess.waitFor();
         if (tagExitCode != 0) {
@@ -234,6 +232,7 @@ public class BuildService {
         } else {
             log.info("Image tagged successfully with name: {}", taggedImageName);
         }
+
         // Push the image
         ProcessBuilder pushProcessBuilder = new ProcessBuilder();
         pushProcessBuilder.command("bash", "-c", "sudo docker push " + taggedImageName);
@@ -243,7 +242,20 @@ public class BuildService {
             log.error("Failed to push the image. Exit code: {}", pushExitCode);
             throw new IllegalStateException("Failed to push the image with error code: " + pushExitCode);
         } else {
-            log.info("Image successfully pushed to Docker Hub: {}", taggedImageName);
+            log.info("Image successfully pushed to {}: {}", registryType, taggedImageName);
+        }
+
+        // Check if the Docker entity already exists
+        Optional<Docker> existingDocker = dockerRepository.findByUsernameAndRepoName(username, repositoryName);
+        if (!existingDocker.isPresent()) {
+            // Save the Docker entity if it does not exist
+            Docker docker = new Docker();
+            docker.setUsername(username);
+            docker.setRepoName(repositoryName);
+            dockerRepository.save(docker);
+            log.info("Docker entity saved: {} / {}", username, repositoryName);
+        } else {
+            log.info("Docker entity already exists, not saved: {} / {}", username, repositoryName);
         }
     }
 

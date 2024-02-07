@@ -43,9 +43,13 @@ export class AuthorizationService {
     return this.http.post<any>('/execute-build-command', null, { params });
   }
 
-  pushToRegistry(imageName: string, username: string, repoName: string) {
+  pushToRegistry(imageName: string, username: string, repoName: string, selectedRegistry: string) {
     const url = '/push-to-registry';
-    const params = new HttpParams().set('imageName', imageName).set('dockerHubUsername', username).set('repositoryName', repoName);
+    const params = new HttpParams()
+      .set('imageName', imageName)
+      .set('username', username)
+      .set('repositoryName', repoName)
+      .set('registryType', selectedRegistry);
     return this.http.post(url, params);
   }
 }
