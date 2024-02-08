@@ -1,1 +1,5 @@
-<p>stats works!</p>
+<div *ngIf="configs">
+  <div *ngFor="let config of configs">
+    <p>{{ config.appName }}</p>
+  </div>
+</div>

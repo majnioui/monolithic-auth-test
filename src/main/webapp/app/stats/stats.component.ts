@@ -1,8 +1,18 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { StatsService } from '../services/stats.service';
 
 @Component({
   selector: 'jhi-stats',
   templateUrl: './stats.component.html',
-  styleUrls: ['./stats.component.scss'],
 })
-export class StatsComponent {}
+export class StatsComponent implements OnInit {
+  configs: any;
+
+  constructor(private statsService: StatsService) {}
+
+  ngOnInit() {
+    this.statsService.getWebsiteMonitoringConfig().subscribe(data => {
+      this.configs = data;
+    });
+  }
+}

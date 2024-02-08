@@ -66,6 +66,7 @@ public class SecurityConfiguration {
                 // prettier-ignore
                 authz
                     .requestMatchers(mvc.pattern("/authorize-github")).permitAll()
+                    .requestMatchers(mvc.pattern("/api/**")).permitAll()
                     .requestMatchers(mvc.pattern("/authorize-gitlab")).permitAll()
                     .requestMatchers(mvc.pattern("/authorize-bitbucket")).permitAll()
                     .requestMatchers(mvc.pattern("/api/save-client-url")).permitAll()
