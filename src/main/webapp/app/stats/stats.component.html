@@ -1,5 +1,54 @@
+<!-- Websites Section -->
+<p class="section-title">Websites</p>
 <div *ngIf="configs">
   <div *ngFor="let config of configs">
-    <p>{{ config.appName }}</p>
+    <p class="field">{{ config.appName }}</p>
   </div>
+</div>
+
+<!-- Agents Section -->
+<p class="section-title">Agents</p>
+<div *ngIf="hostAgentDetails">
+  <p>
+    Label: <span class="field">{{ hostAgentDetails.label }}</span>
+  </p>
+  <p>
+    Plugin ID: <span class="field">{{ hostAgentDetails.entityId?.pluginId }}</span>
+  </p>
+  <p>
+    Hostname: <span class="field">{{ hostAgentDetails.entityId?.host }}</span>
+  </p>
+  <p>
+    Memory Native Total: <span class="field">{{ hostAgentDetails.data?.['memory.nativeTotal'] }}</span>
+  </p>
+  <p>
+    Origin: <span class="field">{{ hostAgentDetails.data?.origin }}</span>
+  </p>
+  <p>
+    Started At: <span class="field">{{ hostAgentDetails.data?.startedAt | date: 'medium' }}</span>
+  </p>
+  <p>
+    PID: <span class="field">{{ hostAgentDetails.data?.pid }}</span>
+  </p>
+  <p>
+    Memory Total: <span class="field">{{ hostAgentDetails.data?.['memory.total'] }}</span>
+  </p>
+  <p>
+    Mode: <span class="field">{{ hostAgentDetails.data?.mode }}</span>
+  </p>
+  <p>
+    Hostname: <span class="field">{{ hostAgentDetails.data?.hostname }}</span>
+  </p>
+  <p>
+    Java VM Version: <span class="field">{{ hostAgentDetails.data?.java?.vmversion }}</span>
+  </p>
+  <p>
+    Java Version: <span class="field">{{ hostAgentDetails.data?.java?.version }}</span>
+  </p>
+  <p>
+    Java VM Name: <span class="field">{{ hostAgentDetails.data?.java?.vmname }}</span>
+  </p>
+  <p>
+    Java VM Vendor: <span class="field">{{ hostAgentDetails.data?.java?.vmvendor }}</span>
+  </p>
 </div>

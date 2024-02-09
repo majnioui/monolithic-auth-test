@@ -11,4 +11,8 @@ export class StatsService {
   getWebsiteMonitoringConfig(): Observable<any> {
     return this.http.get(this.resourceUrl);
   }
+
+  getHostAgentDetails(): Observable<any> {
+    return this.http.get('/api/host-agent');
+  }
 }
