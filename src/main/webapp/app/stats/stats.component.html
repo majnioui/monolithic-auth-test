@@ -52,3 +52,28 @@
     Java VM Vendor: <span class="field">{{ hostAgentDetails.data?.java?.vmvendor }}</span>
   </p>
 </div>
+
+<!-- Installed software Section -->
+<p class="section-title">Installed Software</p>
+<div *ngIf="installedSoftware">
+  <ul>
+    <li *ngFor="let software of installedSoftware">
+      Name: {{ software.name }}, Version: {{ software.version }}, Type: {{ software.type }}
+      <ul>
+        <li *ngFor="let user of software.usedBy">Host: {{ user.host }}, Process: {{ user.process }}</li>
+      </ul>
+    </li>
+  </ul>
+</div>
+
+<!-- Infrastrucuture topology -->
+<p class="section-title">Infrastructure Topology Data</p>
+<div *ngIf="infrastructureTopology">
+  <ul>
+    <li *ngFor="let item of infrastructureTopology">
+      <p>Plugin: {{ item.plugin }}</p>
+      <p>Label: {{ item.label }}</p>
+      <p>Plugin ID: {{ item.pluginId }}</p>
+    </li>
+  </ul>
+</div>

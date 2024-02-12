@@ -71,4 +71,28 @@ public class StatsService {
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
         return response.getBody();
     }
+
+    // method to fetch installed software + versions
+    public String getInstalledSoftware() {
+        String url = "https://turquoise-domino.instana.io/api/infrastructure-monitoring/software/versions";
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "apiToken " + apiToken);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+        return response.getBody();
+    }
+
+    // method to fetch infrastructure topology
+    public String getInfrastructureTopology() {
+        String url = "https://turquoise-domino.instana.io/api/infrastructure-monitoring/topology";
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "apiToken " + apiToken);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+        return response.getBody();
+    }
 }

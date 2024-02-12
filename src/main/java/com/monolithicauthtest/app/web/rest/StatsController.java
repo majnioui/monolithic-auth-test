@@ -21,4 +21,14 @@ public class StatsController {
     public String getHostAgentDetails() throws JSONException {
         return statsService.getHostAgentDetails();
     }
+
+    @GetMapping("/api/installed-software")
+    public String getInstalledSoftware() throws JSONException {
+        return statsService.getInstalledSoftware();
+    }
+
+    @GetMapping("/api/infra-topology")
+    public String getInfrastructureTopology() throws JSONException {
+        return statsService.getInfrastructureTopology();
+    }
 }

@@ -15,4 +15,12 @@ export class StatsService {
   getHostAgentDetails(): Observable<any> {
     return this.http.get('/api/host-agent');
   }
+
+  getInstalledSoftware(): Observable<any> {
+    return this.http.get('/api/installed-software');
+  }
+
+  getInfrastructureTopology(): Observable<any> {
+    return this.http.get('/api/infra-topology');
+  }
 }

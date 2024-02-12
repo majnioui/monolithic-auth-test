@@ -13,6 +13,8 @@ export class StatsComponent implements OnInit {
       memory: {},
     },
   };
+  installedSoftware: any;
+  infrastructureTopology: any;
 
   constructor(
     private statsService: StatsService,
@@ -26,8 +28,34 @@ export class StatsComponent implements OnInit {
     this.statsService.getHostAgentDetails().subscribe(response => {
       if (response && response.items && response.items.length > 0) {
         this.hostAgentDetails = response.items[0];
-        this.cdr.detectChanges(); // Manually trigger change detection
+        this.cdr.detectChanges();
       }
     });
+
+    // Fetch installed software versions
+    this.statsService.getInstalledSoftware().subscribe(
+      data => {
+        this.installedSoftware = data;
+        this.cdr.detectChanges();
+      },
+      error => {
+        console.error('Failed to fetch installed software:', error);
+      },
+    );
+
+    // Fetch infrastructure topology
+    this.statsService.getInfrastructureTopology().subscribe(
+      data => {
+        this.infrastructureTopology = data.nodes.map((node: any) => ({
+          plugin: node.plugin,
+          label: node.label,
+          pluginId: node.entityId.pluginId,
+        }));
+        this.cdr.detectChanges();
+      },
+      error => {
+        console.error('Failed to fetch infra topology:', error);
+      },
+    );
   }
 }
