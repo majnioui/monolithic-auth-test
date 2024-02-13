@@ -9,71 +9,146 @@
 <!-- Agents Section -->
 <p class="section-title">Agents</p>
 <div *ngIf="hostAgentDetails">
-  <p>
-    Label: <span class="field">{{ hostAgentDetails.label }}</span>
-  </p>
-  <p>
-    Plugin ID: <span class="field">{{ hostAgentDetails.entityId?.pluginId }}</span>
-  </p>
-  <p>
-    Hostname: <span class="field">{{ hostAgentDetails.entityId?.host }}</span>
-  </p>
-  <p>
-    Memory Native Total: <span class="field">{{ hostAgentDetails.data?.['memory.nativeTotal'] }}</span>
-  </p>
-  <p>
-    Origin: <span class="field">{{ hostAgentDetails.data?.origin }}</span>
-  </p>
-  <p>
-    Started At: <span class="field">{{ hostAgentDetails.data?.startedAt | date: 'medium' }}</span>
-  </p>
-  <p>
-    PID: <span class="field">{{ hostAgentDetails.data?.pid }}</span>
-  </p>
-  <p>
-    Memory Total: <span class="field">{{ hostAgentDetails.data?.['memory.total'] }}</span>
-  </p>
-  <p>
-    Mode: <span class="field">{{ hostAgentDetails.data?.mode }}</span>
-  </p>
-  <p>
-    Hostname: <span class="field">{{ hostAgentDetails.data?.hostname }}</span>
-  </p>
-  <p>
-    Java VM Version: <span class="field">{{ hostAgentDetails.data?.java?.vmversion }}</span>
-  </p>
-  <p>
-    Java Version: <span class="field">{{ hostAgentDetails.data?.java?.version }}</span>
-  </p>
-  <p>
-    Java VM Name: <span class="field">{{ hostAgentDetails.data?.java?.vmname }}</span>
-  </p>
-  <p>
-    Java VM Vendor: <span class="field">{{ hostAgentDetails.data?.java?.vmvendor }}</span>
-  </p>
+  <table class="agents-table">
+    <tbody>
+      <tr>
+        <th>Label</th>
+        <td>{{ hostAgentDetails.label }}</td>
+      </tr>
+      <tr>
+        <th>Plugin ID</th>
+        <td>{{ hostAgentDetails.entityId?.pluginId }}</td>
+      </tr>
+      <tr>
+        <th>Hostname</th>
+        <td>{{ hostAgentDetails.entityId?.host }}</td>
+      </tr>
+      <tr>
+        <th>Memory Native Total</th>
+        <td>{{ hostAgentDetails.data?.['memory.nativeTotal'] }}</td>
+      </tr>
+      <tr>
+        <th>Origin</th>
+        <td>{{ hostAgentDetails.data?.origin }}</td>
+      </tr>
+      <tr>
+        <th>Started At</th>
+        <td>{{ hostAgentDetails.data?.startedAt | date: 'medium' }}</td>
+      </tr>
+      <tr>
+        <th>PID</th>
+        <td>{{ hostAgentDetails.data?.pid }}</td>
+      </tr>
+      <tr>
+        <th>Memory Total</th>
+        <td>{{ hostAgentDetails.data?.['memory.total'] }}</td>
+      </tr>
+      <tr>
+        <th>Mode</th>
+        <td>{{ hostAgentDetails.data?.mode }}</td>
+      </tr>
+      <tr>
+        <th>Java VM Version</th>
+        <td>{{ hostAgentDetails.data?.java?.vmversion }}</td>
+      </tr>
+      <tr>
+        <th>Java Version</th>
+        <td>{{ hostAgentDetails.data?.java?.version }}</td>
+      </tr>
+      <tr>
+        <th>Java VM Name</th>
+        <td>{{ hostAgentDetails.data?.java?.vmname }}</td>
+      </tr>
+      <tr>
+        <th>Java VM Vendor</th>
+        <td>{{ hostAgentDetails.data?.java?.vmvendor }}</td>
+      </tr>
+    </tbody>
+  </table>
 </div>
 
-<!-- Installed software Section -->
+<!-- Installed Software Section -->
 <p class="section-title">Installed Software</p>
-<div *ngIf="installedSoftware">
-  <ul>
-    <li *ngFor="let software of installedSoftware">
-      Name: {{ software.name }}, Version: {{ software.version }}, Type: {{ software.type }}
-      <ul>
-        <li *ngFor="let user of software.usedBy">Host: {{ user.host }}, Process: {{ user.process }}</li>
-      </ul>
-    </li>
-  </ul>
+<div *ngIf="installedSoftware && installedSoftware.length > 0; else noSoftware">
+  <table class="software-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Version</th>
+        <th>Type</th>
+        <th>Used By</th>
+      </tr>
+    </thead>
+    <tbody>
+      <ng-container *ngFor="let software of installedSoftware">
+        <tr>
+          <td>{{ software.name }}</td>
+          <td>{{ software.version }}</td>
+          <td>{{ software.type }}</td>
+          <td>
+            <ul>
+              <li *ngFor="let user of software.usedBy">Host: {{ user.host }}, Process: {{ user.process }}</li>
+            </ul>
+          </td>
+        </tr>
+      </ng-container>
+    </tbody>
+  </table>
 </div>
+<ng-template #noSoftware><p>No installed software found.</p></ng-template>
 
-<!-- Infrastrucuture topology -->
+<!-- Infrastructure Topology Section -->
 <p class="section-title">Infrastructure Topology Data</p>
-<div *ngIf="infrastructureTopology">
-  <ul>
-    <li *ngFor="let item of infrastructureTopology">
-      <p>Plugin: {{ item.plugin }}</p>
-      <p>Label: {{ item.label }}</p>
-      <p>Plugin ID: {{ item.pluginId }}</p>
-    </li>
-  </ul>
+<div *ngIf="infrastructureTopology && infrastructureTopology.length > 0; else noTopology">
+  <table class="topology-table">
+    <thead>
+      <tr>
+        <th>Plugin</th>
+        <th>Label</th>
+        <th>Plugin ID</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of infrastructureTopology">
+        <td>{{ item.plugin }}</td>
+        <td>{{ item.label }}</td>
+        <td>{{ item.pluginId }}</td>
+      </tr>
+    </tbody>
+  </table>
 </div>
+<ng-template #noTopology><p>No topology data found.</p></ng-template>
+
+<!-- Events Section -->
+<p class="section-title">Events</p>
+<div *ngIf="eventsData && eventsData.length > 0; else noEvents">
+  <table class="events-table">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>State</th>
+        <th>Problem</th>
+        <th>Detail</th>
+        <th>Severity</th>
+        <th>Entity Name</th>
+        <th>Entity Label</th>
+        <th>Entity Type</th>
+        <th>Fix Suggestion</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let event of eventsData">
+        <td>{{ event.type }}</td>
+        <td>{{ event.state }}</td>
+        <td>{{ event.problem }}</td>
+        <td>{{ event.detail }}</td>
+        <td>{{ event.severity }}</td>
+        <td>{{ event.entityName }}</td>
+        <td>{{ event.entityLabel }}</td>
+        <td>{{ event.entityType }}</td>
+        <td>{{ event.fixSuggestion }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<ng-template #noEvents><p>No events found.</p></ng-template>

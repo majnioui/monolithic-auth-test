@@ -31,4 +31,9 @@ public class StatsController {
     public String getInfrastructureTopology() throws JSONException {
         return statsService.getInfrastructureTopology();
     }
+
+    @GetMapping("/api/all-events")
+    public String getAllEvents() throws JSONException {
+        return statsService.getAllEvents();
+    }
 }

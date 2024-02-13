@@ -23,4 +23,8 @@ export class StatsService {
   getInfrastructureTopology(): Observable<any> {
     return this.http.get('/api/infra-topology');
   }
+
+  getAllEvents(): Observable<any> {
+    return this.http.get('/api/all-events');
+  }
 }

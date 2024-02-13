@@ -15,6 +15,7 @@ export class StatsComponent implements OnInit {
   };
   installedSoftware: any;
   infrastructureTopology: any;
+  eventsData: any[] = [];
 
   constructor(
     private statsService: StatsService,
@@ -55,6 +56,16 @@ export class StatsComponent implements OnInit {
       },
       error => {
         console.error('Failed to fetch infra topology:', error);
+      },
+    );
+    // Fetch all events
+    this.statsService.getAllEvents().subscribe(
+      data => {
+        this.eventsData = data;
+        this.cdr.detectChanges();
+      },
+      error => {
+        console.error('Failed to fetch all events:', error);
       },
     );
   }
