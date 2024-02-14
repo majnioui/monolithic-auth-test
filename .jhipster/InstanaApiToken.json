@@ -5,6 +5,10 @@
     {
       "fieldName": "token",
       "fieldType": "String"
+    },
+    {
+      "fieldName": "url",
+      "fieldType": "String"
     }
   ],
   "name": "InstanaApiToken",

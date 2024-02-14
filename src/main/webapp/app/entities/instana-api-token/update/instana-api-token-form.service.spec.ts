@@ -21,6 +21,7 @@ describe('InstanaApiToken Form Service', () => {
           expect.objectContaining({
             id: expect.any(Object),
             token: expect.any(Object),
+            url: expect.any(Object),
           }),
         );
       });
@@ -32,6 +33,7 @@ describe('InstanaApiToken Form Service', () => {
           expect.objectContaining({
             id: expect.any(Object),
             token: expect.any(Object),
+            url: expect.any(Object),
           }),
         );
       });

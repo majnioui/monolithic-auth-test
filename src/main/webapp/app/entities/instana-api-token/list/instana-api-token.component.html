@@ -44,6 +44,12 @@
               <fa-icon class="p-1" icon="sort"></fa-icon>
             </div>
           </th>
+          <th scope="col" jhiSortBy="url">
+            <div class="d-flex">
+              <span jhiTranslate="monolithicauthtestApp.instanaApiToken.url">Url</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
           <th scope="col"></th>
         </tr>
       </thead>
@@ -53,6 +59,7 @@
             <a [routerLink]="['/instana-api-token', instanaApiToken.id, 'view']">{{ instanaApiToken.id }}</a>
           </td>
           <td>{{ instanaApiToken.token }}</td>
+          <td>{{ instanaApiToken.url }}</td>
           <td class="text-end">
             <div class="btn-group">
               <a

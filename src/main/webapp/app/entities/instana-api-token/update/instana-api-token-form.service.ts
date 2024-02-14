@@ -19,6 +19,7 @@ type InstanaApiTokenFormDefaults = Pick<NewInstanaApiToken, 'id'>;
 type InstanaApiTokenFormGroupContent = {
   id: FormControl<IInstanaApiToken['id'] | NewInstanaApiToken['id']>;
   token: FormControl<IInstanaApiToken['token']>;
+  url: FormControl<IInstanaApiToken['url']>;
 };
 
 export type InstanaApiTokenFormGroup = FormGroup<InstanaApiTokenFormGroupContent>;
@@ -39,6 +40,7 @@ export class InstanaApiTokenFormService {
         },
       ),
       token: new FormControl(instanaApiTokenRawValue.token),
+      url: new FormControl(instanaApiTokenRawValue.url),
     });
   }
 

@@ -18,7 +18,8 @@
         "title": "Instana Api Token"
       },
       "id": "ID",
-      "token": "Token"
+      "token": "Token",
+      "url": "Url"
     }
   }
 }

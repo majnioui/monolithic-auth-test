@@ -17,6 +17,9 @@
             <column name="token" type="varchar(255)">
                 <constraints nullable="true" />
             </column>
+            <column name="url" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
             <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here -->
         </createTable>
     </changeSet>
@@ -39,6 +42,7 @@
                   usePreparedStatements="true">
             <column name="id" type="numeric"/>
             <column name="token" type="string"/>
+            <column name="url" type="string"/>
             <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here -->
         </loadData>
     </changeSet>

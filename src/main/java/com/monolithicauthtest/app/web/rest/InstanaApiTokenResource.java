@@ -126,6 +126,9 @@ public class InstanaApiTokenResource {
                 if (instanaApiToken.getToken() != null) {
                     existingInstanaApiToken.setToken(instanaApiToken.getToken());
                 }
+                if (instanaApiToken.getUrl() != null) {
+                    existingInstanaApiToken.setUrl(instanaApiToken.getUrl());
+                }
 
                 return existingInstanaApiToken;
             })

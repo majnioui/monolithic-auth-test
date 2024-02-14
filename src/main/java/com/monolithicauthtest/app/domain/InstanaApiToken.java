@@ -25,6 +25,9 @@ public class InstanaApiToken implements Serializable {
     @Column(name = "token")
     private String token;
 
+    @Column(name = "url")
+    private String url;
+
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
     public Long getId() {
@@ -53,6 +56,19 @@ public class InstanaApiToken implements Serializable {
         this.token = token;
     }
 
+    public String getUrl() {
+        return this.url;
+    }
+
+    public InstanaApiToken url(String url) {
+        this.setUrl(url);
+        return this;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
@@ -78,6 +94,7 @@ public class InstanaApiToken implements Serializable {
         return "InstanaApiToken{" +
             "id=" + getId() +
             ", token='" + getToken() + "'" +
+            ", url='" + getUrl() + "'" +
             "}";
     }
 }

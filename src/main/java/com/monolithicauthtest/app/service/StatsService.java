@@ -20,6 +20,7 @@ public class StatsService {
     @Autowired
     private InstanaApiTokenRepository instanaApiTokenRepository;
 
+    // Method to get the API token saved in our instanaApiToken entity
     private String getApiToken() {
         InstanaApiToken instanaApiToken = instanaApiTokenRepository.findTopByOrderByIdDesc();
         return instanaApiToken != null ? instanaApiToken.getToken() : "";

@@ -32,6 +32,9 @@ class InstanaApiTokenResourceIT {
     private static final String DEFAULT_TOKEN = "AAAAAAAAAA";
     private static final String UPDATED_TOKEN = "BBBBBBBBBB";
 
+    private static final String DEFAULT_URL = "AAAAAAAAAA";
+    private static final String UPDATED_URL = "BBBBBBBBBB";
+
     private static final String ENTITY_API_URL = "/api/instana-api-tokens";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
 
@@ -56,7 +59,7 @@ class InstanaApiTokenResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static InstanaApiToken createEntity(EntityManager em) {
-        InstanaApiToken instanaApiToken = new InstanaApiToken().token(DEFAULT_TOKEN);
+        InstanaApiToken instanaApiToken = new InstanaApiToken().token(DEFAULT_TOKEN).url(DEFAULT_URL);
         return instanaApiToken;
     }
 
@@ -67,7 +70,7 @@ class InstanaApiTokenResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static InstanaApiToken createUpdatedEntity(EntityManager em) {
-        InstanaApiToken instanaApiToken = new InstanaApiToken().token(UPDATED_TOKEN);
+        InstanaApiToken instanaApiToken = new InstanaApiToken().token(UPDATED_TOKEN).url(UPDATED_URL);
         return instanaApiToken;
     }
 
@@ -92,6 +95,7 @@ class InstanaApiTokenResourceIT {
         assertThat(instanaApiTokenList).hasSize(databaseSizeBeforeCreate + 1);
         InstanaApiToken testInstanaApiToken = instanaApiTokenList.get(instanaApiTokenList.size() - 1);
         assertThat(testInstanaApiToken.getToken()).isEqualTo(DEFAULT_TOKEN);
+        assertThat(testInstanaApiToken.getUrl()).isEqualTo(DEFAULT_URL);
     }
 
     @Test
@@ -126,7 +130,8 @@ class InstanaApiTokenResourceIT {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(instanaApiToken.getId().intValue())))
-            .andExpect(jsonPath("$.[*].token").value(hasItem(DEFAULT_TOKEN)));
+            .andExpect(jsonPath("$.[*].token").value(hasItem(DEFAULT_TOKEN)))
+            .andExpect(jsonPath("$.[*].url").value(hasItem(DEFAULT_URL)));
     }
 
     @Test
@@ -141,7 +146,8 @@ class InstanaApiTokenResourceIT {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(instanaApiToken.getId().intValue()))
-            .andExpect(jsonPath("$.token").value(DEFAULT_TOKEN));
+            .andExpect(jsonPath("$.token").value(DEFAULT_TOKEN))
+            .andExpect(jsonPath("$.url").value(DEFAULT_URL));
     }
 
     @Test
@@ -163,7 +169,7 @@ class InstanaApiTokenResourceIT {
         InstanaApiToken updatedInstanaApiToken = instanaApiTokenRepository.findById(instanaApiToken.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedInstanaApiToken are not directly saved in db
         em.detach(updatedInstanaApiToken);
-        updatedInstanaApiToken.token(UPDATED_TOKEN);
+        updatedInstanaApiToken.token(UPDATED_TOKEN).url(UPDATED_URL);
 
         restInstanaApiTokenMockMvc
             .perform(
@@ -178,6 +184,7 @@ class InstanaApiTokenResourceIT {
         assertThat(instanaApiTokenList).hasSize(databaseSizeBeforeUpdate);
         InstanaApiToken testInstanaApiToken = instanaApiTokenList.get(instanaApiTokenList.size() - 1);
         assertThat(testInstanaApiToken.getToken()).isEqualTo(UPDATED_TOKEN);
+        assertThat(testInstanaApiToken.getUrl()).isEqualTo(UPDATED_URL);
     }
 
     @Test
@@ -250,7 +257,7 @@ class InstanaApiTokenResourceIT {
         InstanaApiToken partialUpdatedInstanaApiToken = new InstanaApiToken();
         partialUpdatedInstanaApiToken.setId(instanaApiToken.getId());
 
-        partialUpdatedInstanaApiToken.token(UPDATED_TOKEN);
+        partialUpdatedInstanaApiToken.token(UPDATED_TOKEN).url(UPDATED_URL);
 
         restInstanaApiTokenMockMvc
             .perform(
@@ -265,6 +272,7 @@ class InstanaApiTokenResourceIT {
         assertThat(instanaApiTokenList).hasSize(databaseSizeBeforeUpdate);
         InstanaApiToken testInstanaApiToken = instanaApiTokenList.get(instanaApiTokenList.size() - 1);
         assertThat(testInstanaApiToken.getToken()).isEqualTo(UPDATED_TOKEN);
+        assertThat(testInstanaApiToken.getUrl()).isEqualTo(UPDATED_URL);
     }
 
     @Test
@@ -279,7 +287,7 @@ class InstanaApiTokenResourceIT {
         InstanaApiToken partialUpdatedInstanaApiToken = new InstanaApiToken();
         partialUpdatedInstanaApiToken.setId(instanaApiToken.getId());
 
-        partialUpdatedInstanaApiToken.token(UPDATED_TOKEN);
+        partialUpdatedInstanaApiToken.token(UPDATED_TOKEN).url(UPDATED_URL);
 
         restInstanaApiTokenMockMvc
             .perform(
@@ -294,6 +302,7 @@ class InstanaApiTokenResourceIT {
         assertThat(instanaApiTokenList).hasSize(databaseSizeBeforeUpdate);
         InstanaApiToken testInstanaApiToken = instanaApiTokenList.get(instanaApiTokenList.size() - 1);
         assertThat(testInstanaApiToken.getToken()).isEqualTo(UPDATED_TOKEN);
+        assertThat(testInstanaApiToken.getUrl()).isEqualTo(UPDATED_URL);
     }
 
     @Test
