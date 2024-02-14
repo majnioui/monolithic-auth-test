@@ -1,7 +1,10 @@
 package com.monolithicauthtest.app.service;
 
+import com.monolithicauthtest.app.domain.InstanaApiToken;
+import com.monolithicauthtest.app.repository.InstanaApiTokenRepository;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -14,13 +17,19 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class StatsService {
 
-    private final String apiToken = "XXX";
+    @Autowired
+    private InstanaApiTokenRepository instanaApiTokenRepository;
+
+    private String getApiToken() {
+        InstanaApiToken instanaApiToken = instanaApiTokenRepository.findTopByOrderByIdDesc();
+        return instanaApiToken != null ? instanaApiToken.getToken() : "";
+    }
 
     // General method for making GET requests
     private String makeGetRequest(String url) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "apiToken " + apiToken);
+        headers.set("Authorization", "apiToken " + getApiToken());
         HttpEntity<String> entity = new HttpEntity<>(headers);
         try {
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
@@ -36,7 +45,7 @@ public class StatsService {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "apiToken " + apiToken);
+        headers.set("Authorization", "apiToken " + getApiToken());
         HttpEntity<String> entity = new HttpEntity<>(jsonPayload, headers);
         try {
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
@@ -64,12 +73,10 @@ public class StatsService {
                 for (int i = 0; i < items.length(); i++) {
                     snapshotIds.put(items.getJSONObject(i).getString("snapshotId"));
                 }
-
                 // Construct JSON payload for POST request
                 JSONObject payload = new JSONObject();
                 payload.put("snapshotIds", snapshotIds);
                 String detailUrl = "https://orchid-frata0esw3o.instana.io/api/infrastructure-monitoring/snapshots";
-
                 // Use makePostRequest to send the POST request
                 return makePostRequest(detailUrl, payload.toString());
             }

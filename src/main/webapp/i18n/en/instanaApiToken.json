@@ -1,0 +1,24 @@
+{
+  "monolithicauthtestApp": {
+    "instanaApiToken": {
+      "home": {
+        "title": "Instana Api Tokens",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Instana Api Token",
+        "createOrEditLabel": "Create or edit a Instana Api Token",
+        "notFound": "No Instana Api Tokens found"
+      },
+      "created": "A new Instana Api Token is created with identifier {{ param }}",
+      "updated": "A Instana Api Token is updated with identifier {{ param }}",
+      "deleted": "A Instana Api Token is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Instana Api Token {{ id }}?"
+      },
+      "detail": {
+        "title": "Instana Api Token"
+      },
+      "id": "ID",
+      "token": "Token"
+    }
+  }
+}
