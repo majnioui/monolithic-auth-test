@@ -2,6 +2,7 @@ package com.monolithicauthtest.app.service;
 
 import com.monolithicauthtest.app.domain.InstanaApiToken;
 import com.monolithicauthtest.app.repository.InstanaApiTokenRepository;
+import jakarta.annotation.PostConstruct;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,20 +21,26 @@ public class StatsService {
     @Autowired
     private InstanaApiTokenRepository instanaApiTokenRepository;
 
-    // Method to get the API token saved in our instanaApiToken entity
-    private String getApiToken() {
+    private String apiToken = "";
+    private String baseUrl = "";
+
+    @PostConstruct
+    public void init() {
         InstanaApiToken instanaApiToken = instanaApiTokenRepository.findTopByOrderByIdDesc();
-        return instanaApiToken != null ? instanaApiToken.getToken() : "";
+        if (instanaApiToken != null) {
+            this.apiToken = instanaApiToken.getToken();
+            this.baseUrl = instanaApiToken.getUrl();
+        }
     }
 
     // General method for making GET requests
-    private String makeGetRequest(String url) {
+    private String makeGetRequest(String endpoint) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "apiToken " + getApiToken());
+        headers.set("Authorization", "apiToken " + this.apiToken);
         HttpEntity<String> entity = new HttpEntity<>(headers);
         try {
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(this.baseUrl + endpoint, HttpMethod.GET, entity, String.class);
             return response.getBody();
         } catch (HttpClientErrorException e) {
             e.printStackTrace();
@@ -42,14 +49,14 @@ public class StatsService {
     }
 
     // Method for making POST requests
-    private String makePostRequest(String url, String jsonPayload) {
+    private String makePostRequest(String endpoint, String jsonPayload) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "apiToken " + getApiToken());
+        headers.set("Authorization", "apiToken " + this.apiToken);
         HttpEntity<String> entity = new HttpEntity<>(jsonPayload, headers);
         try {
-            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+            ResponseEntity<String> response = restTemplate.postForEntity(this.baseUrl + endpoint, entity, String.class);
             return response.getBody();
         } catch (HttpClientErrorException e) {
             e.printStackTrace();
@@ -58,14 +65,14 @@ public class StatsService {
     }
 
     public String getWebsiteMonitoringConfig() {
-        String url = "https://orchid-frata0esw3o.instana.io/api/website-monitoring/config";
-        return makeGetRequest(url);
+        String endpoint = "/api/website-monitoring/config";
+        return makeGetRequest(endpoint);
     }
 
     // method to fetch host agent details
     public String getHostAgentDetails() {
         try {
-            String hostAgentListUrl = "https://orchid-frata0esw3o.instana.io/api/host-agent/";
+            String hostAgentListUrl = "/api/host-agent/";
             String response = makeGetRequest(hostAgentListUrl);
             JSONObject jsonResponse = new JSONObject(response);
             JSONArray items = jsonResponse.getJSONArray("items");
@@ -77,7 +84,7 @@ public class StatsService {
                 // Construct JSON payload for POST request
                 JSONObject payload = new JSONObject();
                 payload.put("snapshotIds", snapshotIds);
-                String detailUrl = "https://orchid-frata0esw3o.instana.io/api/infrastructure-monitoring/snapshots";
+                String detailUrl = "/api/infrastructure-monitoring/snapshots";
                 // Use makePostRequest to send the POST request
                 return makePostRequest(detailUrl, payload.toString());
             }
@@ -88,17 +95,17 @@ public class StatsService {
     }
 
     public String getInstalledSoftware() {
-        String url = "https://orchid-frata0esw3o.instana.io/api/infrastructure-monitoring/software/versions";
-        return makeGetRequest(url);
+        String endpoint = "/api/infrastructure-monitoring/software/versions";
+        return makeGetRequest(endpoint);
     }
 
     public String getInfrastructureTopology() {
-        String url = "https://orchid-frata0esw3o.instana.io/api/infrastructure-monitoring/topology";
-        return makeGetRequest(url);
+        String endpoint = "/api/infrastructure-monitoring/topology";
+        return makeGetRequest(endpoint);
     }
 
     public String getAllEvents() {
-        String url = "https://orchid-frata0esw3o.instana.io/api/events?windowSize=86400000";
-        return makeGetRequest(url);
+        String endpoint = "/api/events?windowSize=86400000";
+        return makeGetRequest(endpoint);
     }
 }
