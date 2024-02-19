@@ -10,6 +10,7 @@ import HomeComponent from './home/home.component';
 import NavbarComponent from './layouts/navbar/navbar.component';
 import LoginComponent from './login/login.component';
 import { AuthorizationComponent } from './authorization/authorization.component';
+import { StatsComponent } from './stats/stats.component';
 
 @NgModule({
   imports: [
@@ -28,6 +29,10 @@ import { AuthorizationComponent } from './authorization/authorization.component'
         {
           path: 'authorization',
           component: AuthorizationComponent,
+        },
+        {
+          path: 'stats',
+          component: StatsComponent,
         },
         {
           path: 'admin',

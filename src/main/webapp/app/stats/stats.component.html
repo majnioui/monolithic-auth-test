@@ -1,0 +1,154 @@
+<!-- Websites Section -->
+<p class="section-title">Websites</p>
+<div *ngIf="configs">
+  <div *ngFor="let config of configs">
+    <p class="field">{{ config.appName }}</p>
+  </div>
+</div>
+
+<!-- Agents Section -->
+<p class="section-title">Agents</p>
+<div *ngIf="hostAgentDetails">
+  <table class="agents-table">
+    <tbody>
+      <tr>
+        <th>Label</th>
+        <td>{{ hostAgentDetails.label }}</td>
+      </tr>
+      <tr>
+        <th>Plugin ID</th>
+        <td>{{ hostAgentDetails.entityId?.pluginId }}</td>
+      </tr>
+      <tr>
+        <th>Hostname</th>
+        <td>{{ hostAgentDetails.entityId?.host }}</td>
+      </tr>
+      <tr>
+        <th>Memory Native Total</th>
+        <td>{{ hostAgentDetails.data?.['memory.nativeTotal'] }}</td>
+      </tr>
+      <tr>
+        <th>Origin</th>
+        <td>{{ hostAgentDetails.data?.origin }}</td>
+      </tr>
+      <tr>
+        <th>Started At</th>
+        <td>{{ hostAgentDetails.data?.startedAt | date: 'medium' }}</td>
+      </tr>
+      <tr>
+        <th>PID</th>
+        <td>{{ hostAgentDetails.data?.pid }}</td>
+      </tr>
+      <tr>
+        <th>Memory Total</th>
+        <td>{{ hostAgentDetails.data?.['memory.total'] }}</td>
+      </tr>
+      <tr>
+        <th>Mode</th>
+        <td>{{ hostAgentDetails.data?.mode }}</td>
+      </tr>
+      <tr>
+        <th>Java VM Version</th>
+        <td>{{ hostAgentDetails.data?.java?.vmversion }}</td>
+      </tr>
+      <tr>
+        <th>Java Version</th>
+        <td>{{ hostAgentDetails.data?.java?.version }}</td>
+      </tr>
+      <tr>
+        <th>Java VM Name</th>
+        <td>{{ hostAgentDetails.data?.java?.vmname }}</td>
+      </tr>
+      <tr>
+        <th>Java VM Vendor</th>
+        <td>{{ hostAgentDetails.data?.java?.vmvendor }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Installed Software Section -->
+<p class="section-title">Installed Software</p>
+<div *ngIf="installedSoftware && installedSoftware.length > 0; else noSoftware">
+  <table class="software-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Version</th>
+        <th>Type</th>
+        <th>Used By</th>
+      </tr>
+    </thead>
+    <tbody>
+      <ng-container *ngFor="let software of installedSoftware">
+        <tr>
+          <td>{{ software.name }}</td>
+          <td>{{ software.version }}</td>
+          <td>{{ software.type }}</td>
+          <td>
+            <ul>
+              <li *ngFor="let user of software.usedBy">Host: {{ user.host }}, Process: {{ user.process }}</li>
+            </ul>
+          </td>
+        </tr>
+      </ng-container>
+    </tbody>
+  </table>
+</div>
+<ng-template #noSoftware><p>No installed software found.</p></ng-template>
+
+<!-- Infrastructure Topology Section -->
+<p class="section-title">Infrastructure Topology Data</p>
+<div *ngIf="infrastructureTopology && infrastructureTopology.length > 0; else noTopology">
+  <table class="topology-table">
+    <thead>
+      <tr>
+        <th>Plugin</th>
+        <th>Label</th>
+        <th>Plugin ID</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of infrastructureTopology">
+        <td>{{ item.plugin }}</td>
+        <td>{{ item.label }}</td>
+        <td>{{ item.pluginId }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<ng-template #noTopology><p>No topology data found.</p></ng-template>
+
+<!-- Events Section -->
+<p class="section-title">Events</p>
+<div *ngIf="eventsData && eventsData.length > 0; else noEvents">
+  <table class="events-table">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>State</th>
+        <th>Problem</th>
+        <th>Detail</th>
+        <th>Severity</th>
+        <th>Entity Name</th>
+        <th>Entity Label</th>
+        <th>Entity Type</th>
+        <th>Fix Suggestion</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let event of eventsData">
+        <td>{{ event.type }}</td>
+        <td>{{ event.state }}</td>
+        <td>{{ event.problem }}</td>
+        <td>{{ event.detail }}</td>
+        <td>{{ event.severity }}</td>
+        <td>{{ event.entityName }}</td>
+        <td>{{ event.entityLabel }}</td>
+        <td>{{ event.entityType }}</td>
+        <td>{{ event.fixSuggestion }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<ng-template #noEvents><p>No events found.</p></ng-template>

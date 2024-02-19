@@ -144,6 +144,11 @@
             <version>3.4.1</version>
         </dependency>
         <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20231013</version>
+        </dependency>
+        <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>bootstrap</artifactId>
             <version>4.3.1</version>

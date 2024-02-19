@@ -10,7 +10,8 @@
         "jhipster-needle-menu-add-entry": "JHipster will add additional entities here (do not translate!)",
         "client": "Client",
         "gitrep": "Gitrep",
-        "docker": "Docker"
+        "docker": "Docker",
+        "instanaApiToken": "Instana Api Token"
       },
       "account": {
         "main": "Compte",

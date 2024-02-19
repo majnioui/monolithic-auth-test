@@ -20,6 +20,7 @@
     <include file="config/liquibase/changelog/20231211111443_added_entity_Client.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20231211111444_added_entity_Gitrep.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20240118094153_added_entity_Docker.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20240214132504_added_entity_InstanaApiToken.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-changelog - JHipster will add liquibase changelogs here -->
     <include file="config/liquibase/changelog/20231211111444_added_entity_constraints_Gitrep.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->

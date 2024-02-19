@@ -22,6 +22,7 @@ import MainModule from './layouts/main/main.module';
 import { AppPageTitleStrategy } from './app-page-title-strategy';
 import { AuthorizationComponent } from './authorization/authorization.component';
 import { FormsModule } from '@angular/forms';
+import { StatsComponent } from './stats/stats.component';
 
 @NgModule({
   imports: [
@@ -43,7 +44,7 @@ import { FormsModule } from '@angular/forms';
     { provide: TitleStrategy, useClass: AppPageTitleStrategy },
   ],
   bootstrap: [MainComponent],
-  declarations: [AuthorizationComponent],
+  declarations: [AuthorizationComponent, StatsComponent],
 })
 export class AppModule {
   constructor(applicationConfigService: ApplicationConfigService, iconLibrary: FaIconLibrary, dpConfig: NgbDatepickerConfig) {

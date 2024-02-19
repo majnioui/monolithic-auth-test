@@ -1,0 +1,20 @@
+{
+  "changelogDate": "20240214132504",
+  "entityTableName": "instana_api_token",
+  "fields": [
+    {
+      "fieldName": "token",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "url",
+      "fieldType": "String"
+    }
+  ],
+  "name": "InstanaApiToken",
+  "pagination": "no",
+  "readOnly": false,
+  "relationships": [],
+  "searchEngine": "no",
+  "service": "no"
+}
