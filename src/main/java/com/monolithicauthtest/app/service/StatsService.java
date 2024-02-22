@@ -21,6 +21,9 @@ public class StatsService {
     @Autowired
     private InstanaApiTokenRepository instanaApiTokenRepository;
 
+    @Autowired
+    private RestTemplate restTemplate;
+
     private String apiToken = "";
     private String baseUrl = "";
 
@@ -35,7 +38,6 @@ public class StatsService {
 
     // General method for making GET requests
     private String makeGetRequest(String endpoint) {
-        RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "apiToken " + this.apiToken);
         HttpEntity<String> entity = new HttpEntity<>(headers);
@@ -50,7 +52,6 @@ public class StatsService {
 
     // Method for making POST requests
     private String makePostRequest(String endpoint, String jsonPayload) {
-        RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "apiToken " + this.apiToken);
