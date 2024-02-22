@@ -3,9 +3,12 @@ package com.monolithicauthtest.app.service;
 import com.monolithicauthtest.app.domain.InstanaApiToken;
 import com.monolithicauthtest.app.repository.InstanaApiTokenRepository;
 import jakarta.annotation.PostConstruct;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -19,20 +22,61 @@ import org.springframework.web.client.RestTemplate;
 public class StatsService {
 
     @Autowired
-    private InstanaApiTokenRepository instanaApiTokenRepository;
-
-    @Autowired
     private RestTemplate restTemplate;
 
     private String apiToken = "";
     private String baseUrl = "";
 
+    @Value("${settings.hcl.path:/home}")
+    private String settingsHclSearchPath;
+
+    @Autowired
+    private InstanaApiTokenRepository instanaApiTokenRepository;
+
     @PostConstruct
     public void init() {
+        // Retrieve the latest InstanaApiToken from the database
         InstanaApiToken instanaApiToken = instanaApiTokenRepository.findTopByOrderByIdDesc();
         if (instanaApiToken != null) {
             this.apiToken = instanaApiToken.getToken();
-            this.baseUrl = instanaApiToken.getUrl();
+        }
+
+        // Find settings.hcl file and extract baseUrl (aka our host url)
+        String settingsFilePath = findSettingsHclFilePath();
+        if (!settingsFilePath.isEmpty()) {
+            this.baseUrl = extractBaseUrlFromSettingsHcl(settingsFilePath);
+        }
+    }
+
+    private String findSettingsHclFilePath() {
+        try {
+            Process process = new ProcessBuilder(
+                "/bin/sh",
+                "-c",
+                "find " +
+                settingsHclSearchPath +
+                " -type f -name \"settings.hcl\" 2>/dev/null | awk '{print length, $0}' | sort -n | cut -d\" \" -f2- | head -n 1"
+            )
+                .start();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                return reader.readLine();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
+    private String extractBaseUrlFromSettingsHcl(String filePath) {
+        try {
+            Process process = new ProcessBuilder("/bin/sh", "-c", "grep 'host_name' " + filePath + " | cut -d'=' -f2 | tr -d '\" '")
+                .start();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                return reader.readLine();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
         }
     }
 
