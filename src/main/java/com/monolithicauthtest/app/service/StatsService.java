@@ -61,7 +61,7 @@ public class StatsService {
             Process process = new ProcessBuilder(
                 "/bin/sh",
                 "-c",
-                "find " +
+                "sudo find " +
                 settingsHclSearchPath +
                 " -type f -name \"settings.hcl\" 2>/dev/null | awk '{print length, $0}' | sort -n | cut -d\" \" -f2- | head -n 1"
             )
@@ -77,7 +77,7 @@ public class StatsService {
 
     private String extractBaseUrlFromSettingsHcl(String filePath) {
         try {
-            Process process = new ProcessBuilder("/bin/sh", "-c", "grep 'host_name' " + filePath + " | cut -d'=' -f2 | tr -d '\" '")
+            Process process = new ProcessBuilder("/bin/sh", "-c", "sudo grep 'host_name' " + filePath + " | cut -d'=' -f2 | tr -d '\" '")
                 .start();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 return reader.readLine();
