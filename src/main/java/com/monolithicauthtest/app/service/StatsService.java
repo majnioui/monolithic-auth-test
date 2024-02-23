@@ -7,6 +7,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -26,6 +28,7 @@ public class StatsService {
 
     private String apiToken = "";
     private String baseUrl = "";
+    private static final Logger log = LoggerFactory.getLogger(StatsService.class);
 
     @Value("${settings.hcl.path:/home}")
     private String settingsHclSearchPath;
@@ -39,11 +42,16 @@ public class StatsService {
         InstanaApiToken instanaApiToken = instanaApiTokenRepository.findTopByOrderByIdDesc();
         if (instanaApiToken != null) {
             this.apiToken = instanaApiToken.getToken();
+        } else {
+            log.warn("No InstanaApiToken found.");
         }
 
         // Find settings.hcl file and extract baseUrl (aka our host url)
         String settingsFilePath = findSettingsHclFilePath();
-        if (!settingsFilePath.isEmpty()) {
+        if (settingsFilePath == null || settingsFilePath.isEmpty()) {
+            log.error("Settings file path is empty or not found.");
+            // We can add here a default location in case the search fails
+        } else {
             this.baseUrl = extractBaseUrlFromSettingsHcl(settingsFilePath);
         }
     }
