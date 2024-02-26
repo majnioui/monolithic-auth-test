@@ -96,6 +96,7 @@ public class StatsService {
         }
     }
 
+    // General method for making GET requests
     private String makeGetRequest(String endpoint) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "apiToken " + this.apiToken);
@@ -108,6 +109,7 @@ public class StatsService {
         }
     }
 
+    // Method for making POST requests
     private String makePostRequest(String endpoint, String jsonPayload) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -117,7 +119,7 @@ public class StatsService {
             ResponseEntity<String> response = restTemplate.postForEntity(this.baseUrl + endpoint, entity, String.class);
             return response.getBody();
         } catch (HttpClientErrorException e) {
-            return "{}";
+            return "{}"; // Return empty JSON in case of errors
         }
     }
 
