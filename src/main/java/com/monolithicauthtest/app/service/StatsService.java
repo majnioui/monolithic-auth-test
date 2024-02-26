@@ -7,8 +7,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -27,8 +25,12 @@ public class StatsService {
     private RestTemplate restTemplate;
 
     private String apiToken = "";
-    private String baseUrl = "";
-    private static final Logger log = LoggerFactory.getLogger(StatsService.class);
+
+    @Value("${BASE_URL:}")
+    private String baseUrl;
+
+    @Value("${INSTANA_API_KEY:}")
+    private String instanaApiKey;
 
     @Value("${settings.hcl.path:/home}")
     private String settingsHclSearchPath;
@@ -38,21 +40,29 @@ public class StatsService {
 
     @PostConstruct
     public void init() {
-        // Retrieve the latest InstanaApiToken from the database
-        InstanaApiToken instanaApiToken = instanaApiTokenRepository.findTopByOrderByIdDesc();
-        if (instanaApiToken != null) {
-            this.apiToken = instanaApiToken.getToken();
+        // Check if the INSTANA_API_KEY is provided via environment variable, use it if available
+        if (!instanaApiKey.isEmpty()) {
+            this.apiToken = instanaApiKey;
         } else {
-            log.warn("No InstanaApiToken found.");
+            // Retrieve the latest InstanaApiToken from the database
+            InstanaApiToken instanaApiToken = instanaApiTokenRepository.findTopByOrderByIdDesc();
+            if (instanaApiToken != null) {
+                this.apiToken = instanaApiToken.getToken();
+            }
         }
 
-        // Find settings.hcl file and extract baseUrl (aka our host url)
-        String settingsFilePath = findSettingsHclFilePath();
-        if (settingsFilePath == null || settingsFilePath.isEmpty()) {
-            log.error("Settings file path is empty or not found.");
-            // We can add here a default location in case the search fails
-        } else {
-            this.baseUrl = extractBaseUrlFromSettingsHcl(settingsFilePath);
+        // Only find and extract baseUrl if it's not already set via environment variable
+        if (this.baseUrl.isEmpty()) {
+            String settingsFilePath = findSettingsHclFilePath();
+            if (settingsFilePath == null || settingsFilePath.isEmpty()) {
+                // Fallback to URL from InstanaApiToken if available and no settings file found
+                InstanaApiToken instanaApiToken = instanaApiTokenRepository.findTopByOrderByIdDesc();
+                if (instanaApiToken != null) {
+                    this.baseUrl = instanaApiToken.getUrl();
+                }
+            } else {
+                this.baseUrl = extractBaseUrlFromSettingsHcl(settingsFilePath);
+            }
         }
     }
 
@@ -70,7 +80,6 @@ public class StatsService {
                 return reader.readLine();
             }
         } catch (Exception e) {
-            e.printStackTrace();
             return "";
         }
     }
@@ -83,7 +92,6 @@ public class StatsService {
                 return reader.readLine();
             }
         } catch (Exception e) {
-            e.printStackTrace();
             return "";
         }
     }
@@ -97,8 +105,7 @@ public class StatsService {
             ResponseEntity<String> response = restTemplate.exchange(this.baseUrl + endpoint, HttpMethod.GET, entity, String.class);
             return response.getBody();
         } catch (HttpClientErrorException e) {
-            e.printStackTrace();
-            return "{}"; // Return empty JSON in case of errors
+            return "{}";
         }
     }
 
@@ -112,7 +119,6 @@ public class StatsService {
             ResponseEntity<String> response = restTemplate.postForEntity(this.baseUrl + endpoint, entity, String.class);
             return response.getBody();
         } catch (HttpClientErrorException e) {
-            e.printStackTrace();
             return "{}"; // Return empty JSON in case of errors
         }
     }
