@@ -47,35 +47,38 @@
     <select *ngIf="getRepositoryList().length > 0" class="form-select mt-3" [(ngModel)]="selectedRepo" (change)="onRepoSelected()">
       <option *ngFor="let repo of getRepositoryList()" [value]="repo.name">{{ repo.name }}</option>
     </select>
+    <!-- Suggested Buildpack -->
+    <div *ngIf="selectedRepo">
+      <input type="text" class="form-control mt-3" placeholder="Your build pack" [(ngModel)]="customBuildCommand" />
+      <button class="btn btn-primary mt-2" (click)="executeCustomBuildCommand()">Build</button>
 
-    <!-- Dropdowns for selecting existing Docker entities -->
-      <!-- Registry Selection Dropdown -->
-      <select class="form-select mt-3" [(ngModel)]="selectedRegistry" (change)="onRegistryChange()">
-        <option value="docker">Docker Hub</option>
-        <option value="quay">Quay.io</option>
-      </select>
-      <!-- Registry Selection Dropdown END -->
-      <select class="form-select mt-3" [(ngModel)]="selectedDockerEntity">
-        <option *ngFor="let entity of dockerEntities" [ngValue]="entity">{{ entity.username }}/{{ entity.repoName }}</option>
-      </select>
-      <!-- Conditional Input Fields -->
-      <div *ngIf="selectedRegistry !== 'quay'">
-        <input type="text" class="form-control mt-3" placeholder="Docker Hub Username" [(ngModel)]="registryUsername" />
-      </div>
+      <!-- Dropdowns for selecting existing Docker entities -->
+        <!-- Registry Selection Dropdown -->
+        <select class="form-select mt-3" [(ngModel)]="selectedRegistry" (change)="onRegistryChange()">
+          <option value="docker">Docker Hub</option>
+          <option value="quay">Quay.io</option>
+        </select>
+        <!-- Registry Selection Dropdown END -->
+        <select class="form-select mt-3" [(ngModel)]="selectedDockerEntity">
+          <option *ngFor="let entity of dockerEntities" [ngValue]="entity">{{ entity.username }}/{{ entity.repoName }}</option>
+        </select>
+        <!-- Conditional Input Fields -->
+        <div *ngIf="selectedRegistry !== 'quay'">
+          <input type="text" class="form-control mt-3" placeholder="Docker Hub Username" [(ngModel)]="registryUsername" />
+        </div>
 
-      <input type="text" class="form-control mt-3" placeholder="Repository Name" [(ngModel)]="registryRepoName" />
-      <!-- Push Button -->
-      <button
-        class="btn btn-secondary mt-2"
-        (click)="
-          pushImageToRegistry(
-            registryUsername || selectedDockerEntity?.username || '',
-            registryRepoName || selectedDockerEntity?.repoName || '',
-            selectedRegistry
-          )
-        "
-      >
-        Push to registry
-      </button>
-  </div>
+        <input type="text" class="form-control mt-3" placeholder="Repository Name" [(ngModel)]="registryRepoName" />
+        <!-- Push Button -->
+        <button
+          class="btn btn-secondary mt-2"
+          (click)="
+            pushImageToRegistry(
+              registryUsername || selectedDockerEntity?.username || '',
+              registryRepoName || selectedDockerEntity?.repoName || '',
+              selectedRegistry
+            )
+          "
+        >
+          Push to registry
+        </button>
 </div>
