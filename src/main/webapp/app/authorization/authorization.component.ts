@@ -21,7 +21,6 @@ export class AuthorizationComponent implements OnInit {
   userLogin: string | null = null;
 
   selectedGithubRepo: string | null = null;
-  suggestedBuildpack: string | null = null;
   selectedRepo: string | null = null;
   customBuildCommand: string = '';
   isBuildSuccessful: boolean = false;
@@ -119,20 +118,9 @@ export class AuthorizationComponent implements OnInit {
 
   onRepoSelected() {
     if (this.selectedRepo && this.userLogin && this.platform) {
-      this.AuthorizationService.getSuggestedBuildpack(this.selectedRepo, this.userLogin, this.platform.toUpperCase()).subscribe({
-        next: response => {
-          this.suggestedBuildpack = response.buildpack;
-          this.cloneSelectedRepository();
-          this.cdr.detectChanges();
-        },
-        error: error => {
-          console.error('Error fetching suggested buildpack:', error);
-          this.suggestedBuildpack = null;
-        },
-      });
+      this.cloneSelectedRepository();
     } else {
       console.error('Repository name, user login, or platform is missing');
-      this.suggestedBuildpack = null;
     }
   }
 
