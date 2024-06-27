@@ -63,29 +63,11 @@ public class BuildService {
         // Define the path to the cloned repository
         String repoPath = System.getProperty("user.dir") + File.separator + repoName;
 
-        // Execute 'pack builder suggest' in the cloned repository's directory
-        List<String> builders = new ArrayList<>();
-        ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.directory(new File(repoPath));
-        processBuilder.command("bash", "-c", "pack builder suggest");
+        // Log a message indicating the repository has been cloned
+        log.info("Repository cloned to: {}", repoPath);
 
-        Process process = processBuilder.start();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-        String line;
-        while ((line = reader.readLine()) != null) {
-            builders.add(line);
-            log.debug("Parsed builder: {}", line);
-        }
-
-        int exitCode = process.waitFor();
-        if (exitCode != 0) {
-            log.error("pack builder suggest command exited with error code: {}", exitCode);
-        }
-
-        // Format the builders into a readable string
-        String formattedBuilders = builders.stream().filter(s -> !s.trim().isEmpty()).collect(Collectors.joining("\n"));
-        return formattedBuilders;
+        // Return a placeholder message instead of running the command
+        return "Repository cloned successfully. Pack builder suggestion is not implemented.";
     }
 
     public void cloneRepositoryForUser(String repoName, String userLogin, Gitrep.PlatformType platformType) throws GitAPIException {
@@ -128,7 +110,7 @@ public class BuildService {
         String date = new SimpleDateFormat("yyyyMMdd").format(new Date());
 
         // Construct the full command with the hardcoded part and the variable part
-        String fullCommand = "sudo pack build rkube-" + date + " --builder " + command;
+        String fullCommand = "pack build rkube-" + date + " --builder " + command;
 
         // Execute the custom build command in the cloned repository's directory
         ProcessBuilder processBuilder = new ProcessBuilder();
