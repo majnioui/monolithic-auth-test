@@ -80,17 +80,6 @@ public class BuildController {
         }
     }
 
-    @GetMapping("/docker-entities")
-    public ResponseEntity<List<Docker>> getAllDockerEntities() {
-        try {
-            List<Docker> dockerEntities = buildService.getAllDockerEntities();
-            return ResponseEntity.ok(dockerEntities);
-        } catch (Exception e) {
-            // Logging and error handling
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<>());
-        }
-    }
-
     @PostMapping("/push-to-registry")
     public ResponseEntity<?> pushToRegistry(
         @RequestParam String imageName,
