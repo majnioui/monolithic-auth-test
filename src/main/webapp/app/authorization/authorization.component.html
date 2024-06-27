@@ -1,5 +1,5 @@
 <div *ngIf="account">
-  <div class="s-container">
+  <div class="authorization-container">
     <h2 class="text-center">Choose your authorization method</h2>
 
     <div class="text-center mt-3">
@@ -49,7 +49,6 @@
     </select>
 
     <!-- Dropdowns for selecting existing Docker entities -->
-    <div *ngIf="isBuildSuccessful">
       <!-- Registry Selection Dropdown -->
       <select class="form-select mt-3" [(ngModel)]="selectedRegistry" (change)="onRegistryChange()">
         <option value="docker">Docker Hub</option>
@@ -78,6 +77,5 @@
       >
         Push to registry
       </button>
-    </div>
   </div>
 </div>
