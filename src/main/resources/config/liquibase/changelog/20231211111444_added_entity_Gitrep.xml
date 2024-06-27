@@ -20,6 +20,18 @@
             <column name="accesstoken" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
+            <column name="client_url" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="username" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="created_at" type="timestamp">
+                <constraints nullable="true" />
+            </column>
+            <column name="platform_type" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
             <column name="client_id" type="bigint">
                 <constraints nullable="true" />
             </column>
@@ -46,6 +58,10 @@
             <column name="id" type="numeric"/>
             <column name="clientid" type="string"/>
             <column name="accesstoken" type="string"/>
+            <column name="client_url" type="string"/>
+            <column name="username" type="string"/>
+            <column name="created_at" type="timestamp"/>
+            <column name="platform_type" type="string"/>
             <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here -->
         </loadData>
     </changeSet>
