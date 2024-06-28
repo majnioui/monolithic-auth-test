@@ -1,11 +1,22 @@
 # Step 1: Build the application
-FROM maven:3.6.3-openjdk-17 as build
+FROM maven:3.6.3-openjdk-17-slim as build
+
 WORKDIR /app
 COPY . /app
-RUN mvn clean package -DskipTests
+RUN apt-get update && \
+    apt-get install -y git && \
+    mvn clean package -DskipTests
 
-# Step 2: Run the application
-FROM openjdk:17-oracle
-COPY --from=build /app/target/*.jar app.jar
+# Step 2: Run the application with Docker-in-Docker
+FROM docker:24.0-dind
+
+# Install Java, Maven, and Git using apk (Alpine package manager)
+RUN apk update && \
+    apk add openjdk17 maven git
+
+WORKDIR /app
+COPY --from=build /app/target/*.jar /app/app.jar
+COPY --from=build /app /app
+
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app.jar"]
+ENTRYPOINT ["sh", "-c", "dockerd-entrypoint.sh & java -jar /app/app.jar"]

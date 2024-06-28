@@ -21,12 +21,15 @@ export class AuthorizationComponent implements OnInit {
   userLogin: string | null = null;
 
   selectedGithubRepo: string | null = null;
+  suggestedBuildpack: string | null = null;
   selectedRepo: string | null = null;
   customBuildCommand: string = '';
   isBuildSuccessful: boolean = false;
   registryUsername: string = '';
+  registryPassword: string = '';
   registryRepoName: string = '';
   dockerEntities: IDocker[] = [];
+  selectedDockerEntity: IDocker | null = null;
   selectedRegistry: 'docker' | 'quay' = 'docker';
 
   constructor(
@@ -117,9 +120,20 @@ export class AuthorizationComponent implements OnInit {
 
   onRepoSelected() {
     if (this.selectedRepo && this.userLogin && this.platform) {
-      this.cloneSelectedRepository();
+      this.AuthorizationService.getSuggestedBuildpack(this.selectedRepo, this.userLogin, this.platform.toUpperCase()).subscribe({
+        next: response => {
+          this.suggestedBuildpack = response.buildpack;
+          this.cloneSelectedRepository();
+          this.cdr.detectChanges();
+        },
+        error: error => {
+          console.error('Error fetching suggested buildpack:', error);
+          this.suggestedBuildpack = null;
+        },
+      });
     } else {
       console.error('Repository name, user login, or platform is missing');
+      this.suggestedBuildpack = null;
     }
   }
 
@@ -183,14 +197,14 @@ export class AuthorizationComponent implements OnInit {
   }
 
   // Method to to trigger push to registry
-  pushImageToRegistry(registryUsername: string, registryRepoName: string, selectedRegistry: string) {
+  pushImageToRegistry(registryUsername: string, registryPassword: string, registryRepoName: string, selectedRegistry: string) {
     // Use either the selected entity values or the manually entered values
-    const username = registryUsername;
-    const repoName = registryRepoName;
+    const username = this.selectedDockerEntity?.username || registryUsername;
+    const repoName = this.selectedDockerEntity?.repoName || registryRepoName;
 
     if (this.isBuildSuccessful && username && repoName && selectedRegistry) {
       const imageName = 'rkube-' + this.getFormattedDateTime(); // hardcoded the prefix rkube but it can be anything depends on the use case.
-      this.AuthorizationService.pushToRegistry(imageName, username, repoName, selectedRegistry).subscribe({
+      this.AuthorizationService.pushToRegistry(imageName, username, registryPassword, repoName, selectedRegistry).subscribe({
         next: () => {
           console.log('Image pushed to registry successfully');
         },

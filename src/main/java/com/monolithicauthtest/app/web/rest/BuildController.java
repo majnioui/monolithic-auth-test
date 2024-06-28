@@ -1,13 +1,9 @@
 package com.monolithicauthtest.app.web.rest;
 
-import com.monolithicauthtest.app.domain.Docker;
-import com.monolithicauthtest.app.domain.Gitrep;
-import com.monolithicauthtest.app.service.BuildService;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +13,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.monolithicauthtest.app.domain.Gitrep;
+import com.monolithicauthtest.app.service.BuildService;
 
 @RestController
 public class BuildController {
@@ -84,14 +83,16 @@ public class BuildController {
     public ResponseEntity<?> pushToRegistry(
         @RequestParam String imageName,
         @RequestParam String username,
+        @RequestParam String password,
         @RequestParam String repositoryName,
         @RequestParam String registryType
     ) {
         try {
-            buildService.pushImageToRegistry(imageName, username, repositoryName, registryType);
+            buildService.pushImageToRegistry(imageName, username, password, repositoryName, registryType);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error pushing image to registry: " + e.getMessage());
         }
     }
+
 }
