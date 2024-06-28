@@ -29,7 +29,6 @@ export class AuthorizationComponent implements OnInit {
   registryPassword: string = '';
   registryRepoName: string = '';
   dockerEntities: IDocker[] = [];
-  selectedDockerEntity: IDocker | null = null;
   selectedRegistry: 'docker' | 'quay' = 'docker';
 
   constructor(
@@ -198,9 +197,8 @@ export class AuthorizationComponent implements OnInit {
 
   // Method to to trigger push to registry
   pushImageToRegistry(registryUsername: string, registryPassword: string, registryRepoName: string, selectedRegistry: string) {
-    // Use either the selected entity values or the manually entered values
-    const username = this.selectedDockerEntity?.username || registryUsername;
-    const repoName = this.selectedDockerEntity?.repoName || registryRepoName;
+    const username = registryUsername;
+    const repoName = registryRepoName;
 
     if (this.isBuildSuccessful && username && repoName && selectedRegistry) {
       const imageName = 'rkube-' + this.getFormattedDateTime(); // hardcoded the prefix rkube but it can be anything depends on the use case.

@@ -39,7 +39,6 @@ public class BuildService {
     private final AuthorizationService authorizationService;
     private final UserRepository userRepository;
     private final GitrepRepository gitrepRepository;
-    private final DockerRepository dockerRepository;
 
     public BuildService(
         AuthorizationService authorizationService,
@@ -51,10 +50,8 @@ public class BuildService {
         this.userRepository = userRepository;
         this.gitrepRepository = gitrepRepository;
         this.restTemplate = new RestTemplate();
-        this.dockerRepository = dockerRepository;
     }
 
-    // Method to suggest the pack builders
     public String suggestBuildpack(String repoName, String userLogin, Gitrep.PlatformType platformType)
         throws GitAPIException, InterruptedException, IOException {
         // Clone the repository first, if already done it will be skipped
@@ -110,7 +107,13 @@ public class BuildService {
         String date = new SimpleDateFormat("yyyyMMdd").format(new Date());
 
         // Buildpack command
-        String fullCommand = "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v " + repoPath + ":/workspace -w /workspace buildpacksio/pack build rkube-" + date + " --builder " + command;
+        String fullCommand =
+            "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v " +
+            repoPath +
+            ":/workspace -w /workspace buildpacksio/pack build rkube-" +
+            date +
+            " --builder " +
+            command;
 
         // Execute the custom build command in the cloned repo directory
         ProcessBuilder processBuilder = new ProcessBuilder();
@@ -183,14 +186,17 @@ public class BuildService {
         throws IOException, InterruptedException {
         imageName = imageName.toLowerCase();
 
+        // Define registry URL based on the registry type
+        String registryUrl = registryType.equals("quay") ? "quay.io" : "docker.io";
+
         // Use different separator based on registry type
         String separator = registryType.equals("quay") ? "/" : ":";
-        String taggedImageName = username + "/" + repositoryName + separator + imageName;
+        String taggedImageName = registryUrl + "/" + username + "/" + repositoryName + separator + imageName;
 
-        log.info("Starting to login to the registry: {}", registryType);
+        log.info("Starting to login to the registry: {}", registryUrl);
 
         // Login to the registry
-        String loginCommand = "echo " + password + " | docker login " + (registryType.equals("quay") ? "quay.io" : "") + " -u " + username + " --password-stdin";
+        String loginCommand = "echo " + password + " | docker login " + registryUrl + " -u " + username + " --password-stdin";
         ProcessBuilder loginProcessBuilder = new ProcessBuilder("sh", "-c", loginCommand);
         loginProcessBuilder.redirectErrorStream(true);
         Process loginProcess = loginProcessBuilder.start();
@@ -260,7 +266,6 @@ public class BuildService {
             log.info("Image successfully pushed to {}: {}", registryType, taggedImageName);
         }
     }
-
 
     private String getRepoCloneUrl(Gitrep.PlatformType platformType, String username, String repoName, String accessToken) {
         switch (platformType) {
@@ -451,11 +456,7 @@ public class BuildService {
         }
 
         // Clone the repository
-        Git.cloneRepository()
-            .setURI(repoUrl)
-            .setDirectory(repoDir)
-            .setCredentialsProvider(credentialsProvider)
-            .call();
+        Git.cloneRepository().setURI(repoUrl).setDirectory(repoDir).setCredentialsProvider(credentialsProvider).call();
 
         log.info("Repository cloned successfully into {}", repoDirPath);
     }
