@@ -39,7 +39,6 @@ public class BuildService {
     private final AuthorizationService authorizationService;
     private final UserRepository userRepository;
     private final GitrepRepository gitrepRepository;
-    private final DockerRepository dockerRepository;
 
     public BuildService(
         AuthorizationService authorizationService,
@@ -51,10 +50,8 @@ public class BuildService {
         this.userRepository = userRepository;
         this.gitrepRepository = gitrepRepository;
         this.restTemplate = new RestTemplate();
-        this.dockerRepository = dockerRepository;
     }
 
-    // Method to suggest the pack builders
     public String suggestBuildpack(String repoName, String userLogin, Gitrep.PlatformType platformType)
         throws GitAPIException, InterruptedException, IOException {
         // Clone the repository first, if already done it will be skipped
@@ -78,7 +75,7 @@ public class BuildService {
             platformType
         );
 
-        String repoDirPath = System.getProperty("user.dir") + File.separator + repoName;
+        String repoDirPath = "/app/cloned-repos" + File.separator + repoName;
         File repoDir = new File(repoDirPath);
 
         if (repoDir.exists() && repoDir.isDirectory()) {
@@ -100,22 +97,28 @@ public class BuildService {
 
     public void executeCustomBuildCommand(String repoName, String userLogin, Gitrep.PlatformType platformType, String command)
         throws GitAPIException, InterruptedException, IOException {
-        // Ensure the repository is cloned first
+        // Clone repo first
         cloneRepositoryForUser(repoName, userLogin, platformType);
 
-        // Define the path to the cloned repository
-        String repoPath = System.getProperty("user.dir") + File.separator + repoName;
+        // Path to the cloned repository
+        String repoPath = "/app/cloned-repos" + File.separator + repoName;
 
-        // Format the date in the desired format
+        // Date formatting
         String date = new SimpleDateFormat("yyyyMMdd").format(new Date());
 
-        // Construct the full command with the hardcoded part and the variable part
-        String fullCommand = "pack build rkube-" + date + " --builder " + command;
+        // Buildpack command
+        String fullCommand =
+            "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v " +
+            repoPath +
+            ":/workspace -w /workspace buildpacksio/pack build rkube-" +
+            date +
+            " --builder " +
+            command;
 
-        // Execute the custom build command in the cloned repository's directory
+        // Execute the custom build command in the cloned repo directory
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(new File(repoPath));
-        processBuilder.command("bash", "-c", fullCommand);
+        processBuilder.command("sh", "-c", fullCommand);
 
         Process process = processBuilder.start();
 
@@ -145,12 +148,12 @@ public class BuildService {
 
         log.info("Custom build command executed successfully in {}", repoPath);
 
-        // Define the path for the .tar file
-        String tarFilePath = System.getProperty("user.dir") + File.separator + "rkube-" + date + ".tar";
+        // Define path for the .tar file
+        String tarFilePath = "/app/cloned-repos" + File.separator + "rkube-" + date + ".tar";
 
         // Save the image as a .tar file
-        String saveCommand = "sudo docker save -o " + tarFilePath + " rkube-" + date;
-        processBuilder.command("bash", "-c", saveCommand);
+        String saveCommand = "docker save -o " + tarFilePath + " rkube-" + date;
+        processBuilder.command("sh", "-c", saveCommand);
         Process saveProcess = processBuilder.start();
 
         // Read the output and error streams for the save process
@@ -179,27 +182,52 @@ public class BuildService {
         log.info("Image saved successfully as a .tar file in {}", tarFilePath);
     }
 
-    public void pushImageToRegistry(String imageName, String username, String repositoryName, String registryType)
+    public void pushImageToRegistry(String imageName, String username, String password, String repositoryName, String registryType)
         throws IOException, InterruptedException {
         imageName = imageName.toLowerCase();
 
+        // Define registry URL based on the registry type
+        String registryUrl = registryType.equals("quay") ? "quay.io" : "docker.io";
+
         // Use different separator based on registry type
         String separator = registryType.equals("quay") ? "/" : ":";
-        String taggedImageName = username + "/" + repositoryName + separator + imageName;
+        String taggedImageName = registryUrl + "/" + username + "/" + repositoryName + separator + imageName;
+
+        log.info("Starting to login to the registry: {}", registryUrl);
+
+        // Login to the registry
+        String loginCommand = "echo " + password + " | docker login " + registryUrl + " -u " + username + " --password-stdin";
+        ProcessBuilder loginProcessBuilder = new ProcessBuilder("sh", "-c", loginCommand);
+        loginProcessBuilder.redirectErrorStream(true);
+        Process loginProcess = loginProcessBuilder.start();
+
+        // Read the output from the login command
+        try (BufferedReader loginReader = new BufferedReader(new InputStreamReader(loginProcess.getInputStream()))) {
+            String loginLine;
+            while ((loginLine = loginReader.readLine()) != null) {
+                log.info(loginLine);
+            }
+        }
+
+        int loginExitCode = loginProcess.waitFor();
+        if (loginExitCode != 0) {
+            log.error("Failed to login to the registry. Exit code: {}", loginExitCode);
+            throw new IllegalStateException("Failed to login to the registry with error code: " + loginExitCode);
+        }
 
         log.info("Starting to tag the image: {}", imageName);
 
         // Tag the image
-        ProcessBuilder tagProcessBuilder = new ProcessBuilder();
-        tagProcessBuilder.command("bash", "-c", "sudo docker tag " + imageName + " " + taggedImageName);
+        ProcessBuilder tagProcessBuilder = new ProcessBuilder("sh", "-c", "docker tag " + imageName + " " + taggedImageName);
         tagProcessBuilder.redirectErrorStream(true);
         Process tagProcess = tagProcessBuilder.start();
 
-        // Read the output from the command
-        BufferedReader reader = new BufferedReader(new InputStreamReader(tagProcess.getInputStream()));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            log.info(line);
+        // Read the output from the tag command
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(tagProcess.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                log.info(line);
+            }
         }
 
         int tagExitCode = tagProcess.waitFor();
@@ -211,12 +239,28 @@ public class BuildService {
         }
 
         // Push the image
-        ProcessBuilder pushProcessBuilder = new ProcessBuilder();
-        pushProcessBuilder.command("bash", "-c", "sudo docker push " + taggedImageName);
+        log.info("Pushing the image to the registry: {}", taggedImageName);
+        ProcessBuilder pushProcessBuilder = new ProcessBuilder("sh", "-c", "docker push " + taggedImageName);
+        pushProcessBuilder.redirectErrorStream(true);
         Process pushProcess = pushProcessBuilder.start();
+
+        // Read the output from the push command
+        try (BufferedReader pushReader = new BufferedReader(new InputStreamReader(pushProcess.getInputStream()))) {
+            String pushLine;
+            while ((pushLine = pushReader.readLine()) != null) {
+                log.info(pushLine);
+            }
+        }
+
         int pushExitCode = pushProcess.waitFor();
         if (pushExitCode != 0) {
             log.error("Failed to push the image. Exit code: {}", pushExitCode);
+            try (BufferedReader pushErrorReader = new BufferedReader(new InputStreamReader(pushProcess.getErrorStream()))) {
+                String errorLine;
+                while ((errorLine = pushErrorReader.readLine()) != null) {
+                    log.error(errorLine);
+                }
+            }
             throw new IllegalStateException("Failed to push the image with error code: " + pushExitCode);
         } else {
             log.info("Image successfully pushed to {}: {}", registryType, taggedImageName);
@@ -386,7 +430,7 @@ public class BuildService {
 
     private void cloneRepository(String repoUrl, String repoName, String accessToken, Gitrep.PlatformType platformType)
         throws GitAPIException {
-        String currentWorkingDir = System.getProperty("user.dir");
+        String currentWorkingDir = "/app/cloned-repos";
         String repoDirPath = currentWorkingDir + File.separator + repoName;
         File repoDir = new File(repoDirPath);
 

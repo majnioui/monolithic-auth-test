@@ -53,28 +53,36 @@
       <button class="btn btn-primary mt-2" (click)="executeCustomBuildCommand()">Build</button>
 
       <!-- Dropdowns for selecting existing Docker entities -->
-        <!-- Registry Selection Dropdown -->
-        <select class="form-select mt-3" [(ngModel)]="selectedRegistry" (change)="onRegistryChange()">
-          <option value="docker">Docker Hub</option>
-          <option value="quay">Quay.io</option>
-        </select>
-        <!-- Conditional Input Fields -->
-        <div *ngIf="selectedRegistry !== 'quay'">
-          <input type="text" class="form-control mt-3" placeholder="Docker Hub Username" [(ngModel)]="registryUsername" />
-        </div>
+      <!-- Registry Selection Dropdown -->
+      <select class="form-select mt-3" [(ngModel)]="selectedRegistry" (change)="onRegistryChange()">
+        <option value="docker">Docker Hub</option>
+        <option value="quay">Quay.io</option>
+      </select>
+      <!-- Conditional Input Fields -->
+      <div *ngIf="selectedRegistry !== 'quay'">
+        <input type="text" class="form-control mt-3" placeholder="Docker Hub Username" [(ngModel)]="registryUsername" />
+        <input type="password" class="form-control mt-3" placeholder="Docker Hub Password" [(ngModel)]="registryPassword" />
+      </div>
+      <div *ngIf="selectedRegistry === 'quay'">
+        <input type="text" class="form-control mt-3" placeholder="Quay Username" [(ngModel)]="registryUsername" />
+        <input type="password" class="form-control mt-3" placeholder="Quay Password" [(ngModel)]="registryPassword" />
+      </div>
 
-        <input type="text" class="form-control mt-3" placeholder="Repository Name" [(ngModel)]="registryRepoName" />
-        <!-- Push Button -->
-        <button
-          class="btn btn-secondary mt-2"
-          (click)="
-            pushImageToRegistry(
-              registryUsername || '',
-              registryRepoName || '',
-              selectedRegistry
-            )
-          "
-        >
-          Push to registry
-        </button>
+      <input type="text" class="form-control mt-3" placeholder="Repository Name" [(ngModel)]="registryRepoName" />
+      <!-- Push Button -->
+      <button
+        class="btn btn-secondary mt-2"
+        (click)="
+          pushImageToRegistry(
+            registryUsername || '',
+            registryPassword || '',
+            registryRepoName || '',
+            selectedRegistry
+          )
+        "
+      >
+        Push to registry
+      </button>
+    </div>
+  </div>
 </div>

@@ -1,9 +1,26 @@
 version: '3.8'
+
 services:
   app:
     build: .
     ports:
       - '8080:8080'
+    volumes:
+      - ./cloned-repos:/app/cloned-repos
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      BASE_URL:
-      INSTANA_API_KEY:
+      DOCKER_TLS_CERTDIR: ""
+    privileged: true
+
+  pack:
+    image: buildpacksio/pack:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - .:/workspace
+    working_dir: /workspace
+    entrypoint: ["pack"]
+    depends_on:
+      - app
+
+volumes:
+  app-data:
