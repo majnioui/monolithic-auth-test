@@ -97,36 +97,46 @@ public class BuildService {
 
     public void executeCustomBuildCommand(String repoName, String userLogin, Gitrep.PlatformType platformType, String command)
         throws GitAPIException, InterruptedException, IOException {
-        // Clone repo first
+        // Step 1: Clone the repository
         cloneRepositoryForUser(repoName, userLogin, platformType);
 
         // Path to the cloned repository
         String repoPath = "/app/cloned-repos" + File.separator + repoName;
 
+        // Log the path and list files in the directory
+        log.info("Repository path: {}", repoPath);
+        File repoDir = new File(repoPath);
+        if (repoDir.isDirectory()) {
+            log.info("Listing files in repository directory:");
+            for (String file : repoDir.list()) {
+                log.info("File: {}", file);
+            }
+        } else {
+            log.error("Repository path is not a directory!");
+            throw new IllegalStateException("Repository path is not a directory: " + repoPath);
+        }
+
         // Date formatting
         String date = new SimpleDateFormat("yyyyMMdd").format(new Date());
 
         // Buildpack command
-        String fullCommand =
-            "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v " +
-            repoPath +
-            ":/workspace -w /workspace buildpacksio/pack build rkube-" +
-            date +
-            " --builder " +
-            command;
+        String fullCommand = String.format(
+                "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v %s:%s -w %s buildpacksio/pack build rkube-%s --builder %s --verbose",
+                repoPath, repoPath, repoPath, date, command
+        );
 
-        // Execute the custom build command in the cloned repo directory
+        // Log the full build command
+        log.info("Executing build command: {}", fullCommand);
+
+        // Execute the custom build command
         ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.directory(new File(repoPath));
         processBuilder.command("sh", "-c", fullCommand);
 
         Process process = processBuilder.start();
 
         // Read standard output and error streams
-        try (
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))
-        ) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
             // Reading standard output
             String line;
             while ((line = reader.readLine()) != null) {
@@ -152,15 +162,13 @@ public class BuildService {
         String tarFilePath = "/app/cloned-repos" + File.separator + "rkube-" + date + ".tar";
 
         // Save the image as a .tar file
-        String saveCommand = "docker save -o " + tarFilePath + " rkube-" + date;
+        String saveCommand = String.format("docker save -o %s rkube-%s", tarFilePath, date);
         processBuilder.command("sh", "-c", saveCommand);
         Process saveProcess = processBuilder.start();
 
         // Read the output and error streams for the save process
-        try (
-            BufferedReader saveReader = new BufferedReader(new InputStreamReader(saveProcess.getInputStream()));
-            BufferedReader saveErrorReader = new BufferedReader(new InputStreamReader(saveProcess.getErrorStream()))
-        ) {
+        try (BufferedReader saveReader = new BufferedReader(new InputStreamReader(saveProcess.getInputStream()));
+            BufferedReader saveErrorReader = new BufferedReader(new InputStreamReader(saveProcess.getErrorStream()))) {
             // Reading save command output
             String saveLine;
             while ((saveLine = saveReader.readLine()) != null) {
